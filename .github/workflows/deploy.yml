@@ -28,13 +28,36 @@ jobs:
       - name: Install dependencies
         run: npm ci || npm install
 
+      - name: Inject private deployment config
+        env:
+          # Optional: full JSON contents for public/config.local.json. Stored
+          # as a repo secret or variable so it is never committed.
+          OVERLAY_CONFIG_LOCAL: ${{ secrets.OVERLAY_CONFIG_LOCAL || vars.OVERLAY_CONFIG_LOCAL }}
+          # Optional: custom domain for GitHub Pages. When set, writes
+          # public/CNAME at build time only. Leave unset for repo-hosted Pages.
+          PAGES_CUSTOM_DOMAIN: ${{ vars.PAGES_CUSTOM_DOMAIN }}
+        run: |
+          mkdir -p public
+          if [ -n "$OVERLAY_CONFIG_LOCAL" ]; then
+            printf '%s' "$OVERLAY_CONFIG_LOCAL" > public/config.local.json
+            echo "Wrote public/config.local.json (private deploy override)."
+          fi
+          if [ -n "$PAGES_CUSTOM_DOMAIN" ]; then
+            printf '%s' "$PAGES_CUSTOM_DOMAIN" > public/CNAME
+            echo "Wrote public/CNAME for $PAGES_CUSTOM_DOMAIN."
+          fi
+
       - name: Build
         env:
-          # Vite needs a base path matching the repo name when hosted at
-          # https://<user>.github.io/<repo>/. Override here if your repo
-          # is named differently.
-          BASE_PATH: /${{ github.event.repository.name }}/
-        run: npm run build
+          # Optional override. Leave blank for standard repo-hosted GitHub Pages,
+          # or set to / for a custom domain rooted at the site origin.
+          PAGES_BASE_PATH: ${{ vars.PAGES_BASE_PATH }}
+          # Optional build-time defaults exposed to the browser via Vite.
+          VITE_DEFAULT_CHANNEL: ${{ vars.VITE_DEFAULT_CHANNEL }}
+          VITE_DEFAULT_THEME: ${{ vars.VITE_DEFAULT_THEME }}
+        run: |
+          export BASE_PATH="${PAGES_BASE_PATH:-/${{ github.event.repository.name }}/}"
+          npm run build
 
       - uses: actions/configure-pages@v5
 

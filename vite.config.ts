@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
-// For GitHub Pages: set base to "/<repo-name>/" via env or override here.
-// You can also pass --base=/ChatOverlay/ to vite build.
+// Default: standard repo-hosted GitHub Pages under "/<repo-name>/".
+// Override BASE_PATH=/ for a custom domain, or set another subpath as needed.
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? (process.env.BASE_PATH ?? '/ChatOverlay/') : '/',
   server: {

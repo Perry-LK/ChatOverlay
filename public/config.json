@@ -1,11 +1,13 @@
 {
-  "channel": "PerryLK",
+  "channel": "twitch",
+  "theme": "comfy",
   "fadeOutSeconds": 0,
   "maxMessages": 100,
   "showBadges": true,
   "showReplies": true,
   "showBits": true,
   "showDeleted": false,
+  "showStatus": true,
   "ignoredUsers": ["nightbot", "streamelements", "moobot", "fossabot"],
   "ignoreCommands": true,
   "animateEmotes": true

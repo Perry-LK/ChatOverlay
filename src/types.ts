@@ -1,11 +1,13 @@
 export interface OverlayConfig {
   channel: string;
+  theme: string;
   fadeOutSeconds: number; // 0 = never fade
   maxMessages: number;
   showBadges: boolean;
   showReplies: boolean;
   showBits: boolean;
   showDeleted: boolean;
+  showStatus: boolean;
   ignoredUsers: string[];
   ignoreCommands: boolean;
   animateEmotes: boolean;
