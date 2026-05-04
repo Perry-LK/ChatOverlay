@@ -88,6 +88,45 @@ body {
 	vertical-align: middle;
 }
 
+.badge-fallback {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 1.3em;
+	padding: 0 0.42em;
+	border-radius: 999px;
+	font-size: 0.62em;
+	font-weight: 700;
+	line-height: 1;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	background: rgba(255, 255, 255, 0.2);
+	border: 1px solid rgba(255, 255, 255, 0.28);
+	color: var(--co-text);
+	vertical-align: middle;
+}
+
+.badge-fallback--broadcaster {
+	background: rgba(225, 38, 83, 0.85);
+	border-color: rgba(255, 181, 199, 0.65);
+}
+
+.badge-fallback--moderator {
+	background: rgba(52, 160, 72, 0.82);
+	border-color: rgba(183, 242, 193, 0.6);
+}
+
+.badge-fallback--vip {
+	background: rgba(207, 70, 255, 0.82);
+	border-color: rgba(240, 194, 255, 0.6);
+}
+
+.badge-fallback--subscriber,
+.badge-fallback--founder {
+	background: rgba(44, 118, 255, 0.82);
+	border-color: rgba(186, 211, 255, 0.6);
+}
+
 .username {
 	font-weight: var(--co-username-weight);
 	margin-right: 2px;

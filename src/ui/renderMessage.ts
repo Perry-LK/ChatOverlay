@@ -22,6 +22,23 @@ interface RenderContext {
 	sevenTv: Map<string, SevenTvEmote>;
 }
 
+const BADGE_LABELS: Record<string, string> = {
+	broadcaster: 'Broadcaster',
+	moderator: 'Mod',
+	vip: 'VIP',
+	subscriber: 'Sub',
+	founder: 'Founder',
+	partner: 'Partner',
+	staff: 'Staff',
+	admin: 'Admin',
+	global_mod: 'Global Mod',
+	premium: 'Prime',
+	turbo: 'Turbo',
+	bits: 'Bits',
+	artist: 'Artist',
+	'artist-badge': 'Artist',
+};
+
 type Token =
 	| { type: 'text'; value: string }
 	| { type: 'twitchEmote'; id: string; name: string }
@@ -70,6 +87,23 @@ function appendText(out: Token[], text: string): void {
 	const last = out[out.length - 1];
 	if (last && last.type === 'text') last.value += text;
 	else out.push({ type: 'text', value: text });
+}
+
+function formatBadgeLabel(setId: string, version: string): string {
+	const known = BADGE_LABELS[setId];
+	if (known) return known;
+	const humanized = setId
+		.replace(/[-_]+/g, ' ')
+		.replace(/\b\w/g, (char) => char.toUpperCase());
+	return version && version !== '1' ? `${humanized} ${version}` : humanized;
+}
+
+function makeBadgeFallback(setId: string, version: string): HTMLSpanElement {
+	const pill = document.createElement('span');
+	pill.className = `badge-fallback badge-fallback--${setId.replace(/[^a-z0-9_-]/gi, '').toLowerCase()}`;
+	pill.textContent = formatBadgeLabel(setId, version);
+	pill.title = pill.textContent;
+	return pill;
 }
 
 const CHEER_PREFIXES = [
@@ -140,12 +174,19 @@ export function renderMessage(msg: ChatMessage, ctx: RenderContext): HTMLElement
 		wrap.className = 'badges';
 		for (const badge of msg.badges) {
 			const info = getBadge(badges, badge.setId, badge.version);
-			if (!info) continue;
+			if (!info) {
+				wrap.appendChild(makeBadgeFallback(badge.setId, badge.version));
+				continue;
+			}
+
 			const img = document.createElement('img');
 			img.className = 'badge';
 			img.src = info.imageUrl;
 			img.alt = info.title;
 			img.title = info.title;
+			img.addEventListener('error', () => {
+				img.replaceWith(makeBadgeFallback(badge.setId, badge.version));
+			}, { once: true });
 			wrap.appendChild(img);
 		}
 		if (wrap.childNodes.length) root.appendChild(wrap);
