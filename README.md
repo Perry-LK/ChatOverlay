@@ -21,6 +21,7 @@ No authentication required — chat is read anonymously over Twitch IRC.
 - Configurable per channel via `config.json` or URL query parameters
 - Deploys to GitHub Pages out of the box
 - Works with standard GitHub Pages, custom domains, or local hosting
+- Optional Twitch Helix proxy for official user lookup and badge metadata
 
 ## Quick start (local dev)
 
@@ -46,6 +47,9 @@ parameters or a non-committed config file.
    and can be written from a repo secret at deploy time.
 5. **URL query parameters** — final per-instance override; ideal for OBS.
 
+`twitchApiBase` can be set in `config.local.json`, `.env.local`, or the URL to
+point the browser overlay at your own Twitch Helix proxy.
+
 ### URL-driven configuration (recommended for OBS)
 
 Every setting can be set straight from the browser-source URL, so a single
@@ -60,6 +64,7 @@ A fully-explicit example covering every supported parameter:
 ```
 ?channel=PerryLK
 &theme=comfy
+&twitchApiBase=http://localhost:8787
 &fadeOutSeconds=0
 &maxMessages=100
 &showBadges=true
@@ -101,6 +106,7 @@ The committed default that ships with the site:
 | --------------- | ----------- | ------------------------------------------------------------- |
 | channel         | string      | Twitch login (case-insensitive). `#` prefix optional.         |
 | theme           | string      | Built-ins: `comfy`, `minimalist`, or `none`.                  |
+| twitchApiBase   | string      | Optional base URL of your Twitch Helix proxy.                 |
 | fadeOutSeconds  | number      | `0` disables fading. Otherwise messages fade after N seconds. |
 | maxMessages     | number      | Hard cap on messages kept in the DOM.                         |
 | showBadges      | boolean     | Show user badges (sub/mod/VIP/bits/etc.).                     |
@@ -130,6 +136,7 @@ even if `config.local.json` is removed from the deployed site), copy
 ```
 VITE_DEFAULT_CHANNEL=PerryLK
 VITE_DEFAULT_THEME=comfy
+VITE_TWITCH_API_BASE=http://localhost:8787
 ```
 
 **GitHub Actions deploy:** instead of committing private values, set them as
@@ -146,6 +153,144 @@ repository **Variables** or **Secrets** under *Settings → Secrets and variable
 
 Nothing in this list needs to be committed to the repo, so the public source
 tree stays neutral while your deployed site uses your private values.
+
+## Twitch API app setup
+
+Twitch Helix badge endpoints require authenticated server-side access. Do not
+put your Twitch client secret in the browser bundle or OBS URL.
+
+This repo now includes a tiny local proxy at [proxy/server.mjs](proxy/server.mjs)
+that exchanges your client ID and secret for an app access token and exposes
+only the endpoints the overlay needs.
+
+### 1. Create a Twitch application
+
+1. Go to the Twitch developer console: https://dev.twitch.tv/console/apps
+2. Click **Register Your Application**.
+3. Name it something like `ChatOverlay Local Proxy`.
+4. Set **OAuth Redirect URL** to `http://localhost`.
+5. Set **Category** to `Application Integration`.
+6. Save, then copy the **Client ID** and generate/copy the **Client Secret**.
+
+For this proxy, the redirect URL is not actively used; Twitch still requires
+one when you register the app.
+
+### 2. Run the local proxy
+
+In PowerShell:
+
+```powershell
+$env:TWITCH_CLIENT_ID = 'your-client-id'
+$env:TWITCH_CLIENT_SECRET = 'your-client-secret'
+$env:PORT = '8787'
+npm run proxy:twitch
+```
+
+Optional:
+
+```powershell
+$env:ALLOW_ORIGIN = 'http://127.0.0.1:5173'
+```
+
+Available routes:
+
+- `GET /health`
+- `GET /api/twitch/users?login=<login>`
+- `GET /api/twitch/chat/badges/global`
+- `GET /api/twitch/chat/badges?broadcaster_id=<id>`
+
+### 3. Point the overlay at the proxy
+
+Set one of the following:
+
+- `.env.local`: `VITE_TWITCH_API_BASE=http://localhost:8787`
+- `public/config.local.json`: `"twitchApiBase": "http://localhost:8787"`
+- URL param: `?twitchApiBase=http://localhost:8787`
+
+Once set, the overlay uses the proxy for user lookup and badge metadata first,
+then falls back to the old public lookups only if the proxy is unavailable.
+
+### Cloudflare Worker deployment (always-on, heavily cached)
+
+For an always-on, free, low-maintenance proxy, deploy the same surface as a
+Cloudflare Worker. Source lives under [worker/](worker/) and is independent
+from the static overlay build.
+
+Why this is a good fit:
+
+- Twitch app token is cached at the edge (KV), shared across requests.
+- Helix responses are cached in Cloudflare's edge cache:
+  - User lookups: 24h
+  - Global badges: 24h
+  - Channel badges: 6h
+- Hot paths typically never reach Twitch.
+
+One-time setup:
+
+```powershell
+cd worker
+npm install
+npx wrangler login
+
+# Required secrets — never commit these
+npx wrangler secret put TWITCH_CLIENT_ID
+npx wrangler secret put TWITCH_CLIENT_SECRET
+
+# Optional KV namespace for shared token cache
+npx wrangler kv namespace create OVERLAY_KV
+# then paste the returned id into wrangler.toml
+
+npm run deploy
+```
+
+Once deployed, Cloudflare prints a URL like
+`https://chatoverlay-twitch-proxy.<your-subdomain>.workers.dev`. Use that as
+`twitchApiBase` (env, config, or URL param). For production, also set
+`ALLOW_ORIGIN` in `wrangler.toml` to your overlay's exact origin so the worker
+only serves your site:
+
+```toml
+[vars]
+ALLOW_ORIGIN = "https://you.github.io"
+```
+
+## Customiser (`/customise/`)
+
+A built-in editor at `/customise/` lets you visually tune every part of the
+chat (message text, username, badges, replies, cheers, emotes, message card)
+and exports the result as a **single shareable URL** with everything baked in:
+
+```
+https://you.github.io/ChatOverlay/?channel=PerryLK&theme64=eyJ2YXJzIjp7Ii0...
+```
+
+Features:
+
+- Live preview using sample messages (no Twitch connection needed).
+- Per-element CSS variable inputs (colour pickers, sizes, fonts).
+- Visibility toggles for badges, replies, bits, status indicator.
+- Free-form raw CSS section for surgical overrides.
+- Import / export the underlying JSON for sharing or version control.
+
+The encoded payload travels in `?theme64=...` (URL-safe base64). Nothing is
+uploaded — the editor produces the URL entirely client-side.
+
+## Debug mode
+
+The overlay is silent by default — the connection-status indicator is hidden
+so captures stay clean. Append `?debug=1` to the URL to enable a diagnostics
+panel in the top-left corner that surfaces:
+
+- Resolved Twitch user-id (or `null` if the lookup failed).
+- IRC connection state.
+- Badge map size, sample keys, and the exact fetch error if any.
+- 7TV emote count and any load error.
+- Whether a `theme64` custom theme was applied.
+- Rolling list of warnings emitted at runtime.
+
+Use this if badges or emotes are not appearing as expected — it tells you
+whether the IRC payload contains them, whether the metadata fetch failed, and
+which source (baseline / api / partial) is currently in use.
 
 ## Customising the look
 

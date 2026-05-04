@@ -1,4 +1,5 @@
 import type { OverlayConfig } from '../types';
+import { applyCustomTheme, decodeTheme } from '../customise/theme';
 
 async function loadOptionalStylesheet(href: string, id: string): Promise<void> {
   await new Promise<void>((resolve) => {
@@ -34,7 +35,31 @@ export async function preloadTheme(themeName: string): Promise<void> {
   await loadOptionalStylesheet(`${import.meta.env.BASE_URL}themes/${safe}.css`, 'overlay-theme');
 }
 
-export async function applyTheme(config: OverlayConfig): Promise<void> {
+export interface ThemeApplyResult {
+  customThemeApplied: boolean;
+  visibilityOverrides: Partial<Pick<OverlayConfig, 'showBadges' | 'showReplies' | 'showBits' | 'showStatus'>>;
+}
+
+export async function applyTheme(config: OverlayConfig): Promise<ThemeApplyResult> {
   await preloadTheme(config.theme);
   await loadOptionalStylesheet(`${import.meta.env.BASE_URL}custom.css`, 'overlay-custom');
+
+  const result: ThemeApplyResult = { customThemeApplied: false, visibilityOverrides: {} };
+  if (config.theme64) {
+    const decoded = decodeTheme(config.theme64);
+    if (decoded) {
+      applyCustomTheme(decoded);
+      result.customThemeApplied = true;
+      if (decoded.show) {
+        const o = result.visibilityOverrides;
+        if (typeof decoded.show.badges === 'boolean') o.showBadges = decoded.show.badges;
+        if (typeof decoded.show.replies === 'boolean') o.showReplies = decoded.show.replies;
+        if (typeof decoded.show.bits === 'boolean') o.showBits = decoded.show.bits;
+        if (typeof decoded.show.status === 'boolean') o.showStatus = decoded.show.status;
+      }
+    } else {
+      console.warn('[ChatOverlay] theme64 could not be decoded');
+    }
+  }
+  return result;
 }

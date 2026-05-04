@@ -1,5 +1,26 @@
-export async function resolveTwitchUserId(login: string): Promise<string | null> {
+interface HelixUsersResponse {
+	data?: Array<{ id?: string }>;
+}
+
+function proxyUrl(base: string, path: string): string {
+	return `${base.replace(/\/+$/, '')}${path}`;
+}
+
+export async function resolveTwitchUserId(login: string, twitchApiBase = ''): Promise<string | null> {
 	const cleaned = login.replace(/^#/, '').toLowerCase();
+
+	if (twitchApiBase) {
+		try {
+			const res = await fetch(proxyUrl(twitchApiBase, `/api/twitch/users?login=${encodeURIComponent(cleaned)}`));
+			if (res.ok) {
+				const data = (await res.json()) as HelixUsersResponse;
+				const id = data.data?.[0]?.id;
+				if (typeof id === 'string' && /^\d+$/.test(id)) return id;
+			}
+		} catch {
+			/* fall through */
+		}
+	}
 
 	try {
 		const res = await fetch(`https://decapi.me/twitch/id/${encodeURIComponent(cleaned)}`);

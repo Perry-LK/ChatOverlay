@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat Overlay — Customise</title>
+    <link rel="stylesheet" href="/src/customise/styles.css" />
+  </head>
+  <body>
+    <main class="cu">
+      <header class="cu__header">
+        <h1>Chat Overlay customiser</h1>
+        <p>Live-preview, then copy a single overlay URL with all your settings baked in.</p>
+        <p class="cu__hint">
+          The configuration is encoded into a <code>?theme64=…</code> URL parameter. Nothing is uploaded;
+          everything stays in your browser.
+        </p>
+      </header>
+
+      <section class="cu__layout">
+        <form id="cu-form" class="cu__form" autocomplete="off">
+          <fieldset>
+            <legend>Output URL</legend>
+            <label>
+              Base overlay URL
+              <input type="text" name="baseUrl" id="cu-baseUrl" placeholder="https://you.github.io/ChatOverlay/" />
+            </label>
+            <label>
+              Channel
+              <input type="text" name="channel" id="cu-channel" placeholder="PerryLK" />
+            </label>
+            <label>
+              Preset theme
+              <select name="theme" id="cu-theme">
+                <option value="comfy">comfy</option>
+                <option value="minimalist">minimalist</option>
+                <option value="none">none</option>
+              </select>
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Visibility</legend>
+            <label class="cu__check"><input type="checkbox" id="cu-showBadges" checked /> Badges</label>
+            <label class="cu__check"><input type="checkbox" id="cu-showReplies" checked /> Reply context lines</label>
+            <label class="cu__check"><input type="checkbox" id="cu-showBits" checked /> Cheers / bits</label>
+            <label class="cu__check"><input type="checkbox" id="cu-showStatus" /> Status / debug indicator</label>
+          </fieldset>
+
+          <fieldset id="cu-vars-message">
+            <legend>Message text</legend>
+          </fieldset>
+
+          <fieldset id="cu-vars-username">
+            <legend>Username</legend>
+          </fieldset>
+
+          <fieldset id="cu-vars-emote">
+            <legend>Emotes</legend>
+          </fieldset>
+
+          <fieldset id="cu-vars-card">
+            <legend>Message card</legend>
+          </fieldset>
+
+          <fieldset id="cu-vars-animation">
+            <legend>Animation</legend>
+          </fieldset>
+
+          <fieldset>
+            <legend>Raw CSS overrides</legend>
+            <label class="cu__full">
+              <span>Appended after the theme. Use to target individual classes.</span>
+              <textarea id="cu-css" rows="6" placeholder=".username { letter-spacing: 0.5px; } .badge { width: 1.1em; height: 1.1em; }"></textarea>
+            </label>
+          </fieldset>
+        </form>
+
+        <aside class="cu__side">
+          <section class="cu__preview-wrap">
+            <h2>Preview</h2>
+            <p class="cu__hint">Sample messages — no live IRC connection.</p>
+            <iframe id="cu-preview" class="cu__preview" title="Overlay preview"></iframe>
+          </section>
+
+          <section class="cu__output">
+            <h2>Generated URL</h2>
+            <textarea id="cu-output" readonly rows="4"></textarea>
+            <div class="cu__buttons">
+              <button type="button" id="cu-copy">Copy URL</button>
+              <button type="button" id="cu-open">Open in new tab</button>
+              <button type="button" id="cu-export">Download JSON</button>
+              <button type="button" id="cu-import">Import JSON…</button>
+              <input type="file" id="cu-import-file" accept="application/json" hidden />
+            </div>
+            <details>
+              <summary>Theme JSON</summary>
+              <pre id="cu-json"></pre>
+            </details>
+          </section>
+        </aside>
+      </section>
+
+      <footer class="cu__footer">
+        <p>
+          Visibility flags are written to the JSON payload under <code>show</code>, so the overlay
+          honours them through the same <code>?theme64</code>. Channel and preset theme are added as
+          plain URL parameters so they remain easy to tweak by hand.
+        </p>
+      </footer>
+    </main>
+    <script type="module" src="/src/customise/main.ts"></script>
+  </body>
+</html>

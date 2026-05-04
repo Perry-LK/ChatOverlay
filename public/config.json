@@ -7,7 +7,7 @@
   "showReplies": true,
   "showBits": true,
   "showDeleted": false,
-  "showStatus": true,
+  "showStatus": false,
   "ignoredUsers": ["nightbot", "streamelements", "moobot", "fossabot"],
   "ignoreCommands": true,
   "animateEmotes": true

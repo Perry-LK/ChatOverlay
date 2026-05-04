@@ -8,13 +8,16 @@ import type { OverlayConfig } from './types';
 const DEFAULTS: OverlayConfig = {
   channel: 'twitch',
   theme: 'comfy',
+  twitchApiBase: '',
+  theme64: '',
+  debug: false,
   fadeOutSeconds: 0,
   maxMessages: 100,
   showBadges: true,
   showReplies: true,
   showBits: true,
   showDeleted: false,
-  showStatus: true,
+  showStatus: false,
   ignoredUsers: ['nightbot', 'streamelements', 'moobot', 'fossabot'],
   ignoreCommands: true,
   animateEmotes: true,
@@ -22,10 +25,12 @@ const DEFAULTS: OverlayConfig = {
 
 const BOOL_KEYS: (keyof OverlayConfig)[] = [
   'showBadges', 'showReplies', 'showBits', 'showDeleted', 'showStatus',
-  'ignoreCommands', 'animateEmotes',
+  'ignoreCommands', 'animateEmotes', 'debug',
 ];
 
 const NUM_KEYS: (keyof OverlayConfig)[] = ['fadeOutSeconds', 'maxMessages'];
+
+const STRING_KEYS: (keyof OverlayConfig)[] = ['channel', 'theme', 'theme64', 'twitchApiBase'];
 
 const TRUE_VALUES = new Set(['1', 'true', 'yes', 'on']);
 const FALSE_VALUES = new Set(['0', 'false', 'no', 'off']);
@@ -52,6 +57,7 @@ function applyEnvDefaults(cfg: OverlayConfig): OverlayConfig {
   const env = import.meta.env as Record<string, string | undefined>;
   if (env.VITE_DEFAULT_CHANNEL) cfg.channel = env.VITE_DEFAULT_CHANNEL;
   if (env.VITE_DEFAULT_THEME) cfg.theme = env.VITE_DEFAULT_THEME;
+  if (env.VITE_TWITCH_API_BASE) cfg.twitchApiBase = env.VITE_TWITCH_API_BASE;
   return cfg;
 }
 
@@ -63,6 +69,8 @@ function applyUrlParams(cfg: OverlayConfig): OverlayConfig {
       cfg.channel = value;
     } else if (key === 'theme') {
       cfg.theme = value;
+    } else if (key === 'theme64') {
+      cfg.theme64 = value;
     } else if (key === 'ignoredUsers') {
       cfg.ignoredUsers = value.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
     } else if ((BOOL_KEYS as string[]).includes(key)) {
@@ -71,14 +79,22 @@ function applyUrlParams(cfg: OverlayConfig): OverlayConfig {
     } else if ((NUM_KEYS as string[]).includes(key)) {
       const n = Number(value);
       if (Number.isFinite(n)) (cfg as any)[key] = n;
+    } else if ((STRING_KEYS as string[]).includes(key)) {
+      (cfg as any)[key] = value;
     }
   }
+
+  // ?debug=1 implies showStatus on, since the debug panel relies on the same
+  // status hooks for connection state.
+  if (cfg.debug) cfg.showStatus = true;
+
   return cfg;
 }
 
 function normalize(cfg: OverlayConfig): OverlayConfig {
   cfg.channel = (cfg.channel ?? '').replace(/^#/, '').toLowerCase() || DEFAULTS.channel;
   cfg.theme = (cfg.theme ?? '').trim().toLowerCase() || DEFAULTS.theme;
+  cfg.twitchApiBase = (cfg.twitchApiBase ?? '').trim().replace(/\/+$/, '');
   cfg.ignoredUsers = (cfg.ignoredUsers ?? []).map((u) => u.toLowerCase());
   cfg.fadeOutSeconds = Math.max(0, cfg.fadeOutSeconds | 0);
   cfg.maxMessages = Math.max(1, cfg.maxMessages | 0);
@@ -88,7 +104,8 @@ function normalize(cfg: OverlayConfig): OverlayConfig {
 /**
  * Loads overlay configuration. Later layers override earlier ones:
  *   1. Built-in defaults.
- *   2. Build-time env (VITE_DEFAULT_CHANNEL, VITE_DEFAULT_THEME from .env.local).
+ *   2. Build-time env (VITE_DEFAULT_CHANNEL, VITE_DEFAULT_THEME,
+ *      VITE_TWITCH_API_BASE from .env.local).
  *   3. /config.json — public, committed default for the deployed site.
  *   4. /config.local.json — private overrides; gitignored locally and may be
  *      written at deploy time from a repo secret/variable.

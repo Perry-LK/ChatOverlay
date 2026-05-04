@@ -1,6 +1,12 @@
 export interface OverlayConfig {
   channel: string;
   theme: string;
+  /** Optional server-side proxy base URL for authenticated Twitch Helix calls. */
+  twitchApiBase: string;
+  /** Optional base64-encoded JSON custom theme exported from /customise/. */
+  theme64: string;
+  /** Show the debug panel and connection status indicator. */
+  debug: boolean;
   fadeOutSeconds: number; // 0 = never fade
   maxMessages: number;
   showBadges: boolean;

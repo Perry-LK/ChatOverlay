@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "host:local": "vite preview --host 0.0.0.0"
+    "host:local": "vite preview --host 0.0.0.0",
+    "proxy:twitch": "node proxy/server.mjs"
   },
   "devDependencies": {
     "typescript": "^5.4.0",

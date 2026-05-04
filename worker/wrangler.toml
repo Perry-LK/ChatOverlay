@@ -1,0 +1,22 @@
+name = "chatoverlay-twitch-proxy"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# Optional: lock CORS to your overlay's origin once deployed.
+# [vars]
+# ALLOW_ORIGIN = "https://you.github.io"
+# USERS_TTL_SECONDS = "86400"
+# BADGES_GLOBAL_TTL = "86400"
+# BADGES_CHANNEL_TTL = "21600"
+
+# Optional: a KV namespace lets the worker share the Twitch app token across
+# isolates so you mint fewer tokens. Without it, each isolate fetches its own
+# token (still fine — they last ~60 days).
+#
+# Create with:
+#   wrangler kv namespace create OVERLAY_KV
+# then paste the returned id here.
+#
+# [[kv_namespaces]]
+# binding = "OVERLAY_KV"
+# id = "REPLACE_WITH_KV_ID"
