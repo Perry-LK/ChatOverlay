@@ -32,6 +32,7 @@ async function main(): Promise<void> {
   ]);
   overlay.setBadges(badges);
   overlay.setSevenTv(sevenTv);
+  let badgeSourceUserId = userId;
 
   // Connect to Twitch IRC.
   const irc = new TwitchIrc(config.channel);
@@ -40,7 +41,17 @@ async function main(): Promise<void> {
     else if (s === 'closed' || s === 'error') overlay.setStatus(`disconnected (#${config.channel})`, 'err');
     else overlay.setStatus(`connecting to #${config.channel}…`);
   });
-  irc.on((msg) => overlay.handleIrc(msg));
+  irc.on((msg) => {
+    const roomId = msg.tags['room-id'];
+    if (roomId && roomId !== badgeSourceUserId) {
+      badgeSourceUserId = roomId;
+      loadBadges(roomId)
+        .then((updatedBadges) => overlay.setBadges(updatedBadges))
+        .catch((error) => console.warn('Badge refresh failed:', error));
+    }
+
+    overlay.handleIrc(msg);
+  });
   irc.connect();
 
   // Periodically refresh 7TV channel emotes so additions/removals appear
