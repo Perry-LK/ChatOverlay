@@ -9,8 +9,10 @@ import { createVariableRow, type VariableRow } from './variableRow';
  */
 
 export interface VariableFormOptions {
-  /** Where the generated fieldsets are appended. */
+  /** Default mount for generated fieldsets. */
   mount: HTMLElement;
+  /** Optional per-group mounts, used by the tabbed layout. */
+  groupMounts?: Partial<Record<VariableDefinition['group'], HTMLElement>>;
   /** Current value lookup. */
   getValue: (name: string) => string;
   /** Notified when any individual variable changes. */
@@ -22,8 +24,9 @@ export interface VariableForm {
   refresh: () => void;
 }
 
-export function createVariableForm({ mount, getValue, onVariableChange }: VariableFormOptions): VariableForm {
+export function createVariableForm({ mount, groupMounts, getValue, onVariableChange }: VariableFormOptions): VariableForm {
   mount.replaceChildren();
+  for (const panel of Object.values(groupMounts ?? {})) panel?.replaceChildren();
 
   const rows = new Map<string, VariableRow>();
   const grouped = groupBy(CUSTOMISABLE_VARS, (v) => v.group);
@@ -47,7 +50,7 @@ export function createVariableForm({ mount, getValue, onVariableChange }: Variab
       rows.set(def.name, row);
     }
 
-    mount.appendChild(fieldset);
+    (groupMounts?.[group] ?? mount).appendChild(fieldset);
   }
 
   return {

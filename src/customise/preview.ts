@@ -1,36 +1,11 @@
 import { applyCustomTheme, type CustomTheme } from './theme';
 import baseCss from '../styles/base.css?raw';
-import { getBadge, loadBadges, type BadgeMap } from '../services/twitch/badges';
+import { loadBadges, type BadgeMap } from '../services/twitch/badges';
 import { resolveTwitchUserId } from '../services/twitch/user';
+import { loadSevenTvEmotes } from '../services/emotes/sevenTv';
+import { renderMessage } from '../ui/renderMessage';
 import { collectFontImports } from './presets/fonts';
-
-interface SampleMessage {
-  user: string;
-  color: string;
-  badges: Array<{ setId: string; version: string }>;
-  text: string;
-  reply?: { user: string; body: string };
-  bits?: number;
-  isAction?: boolean;
-}
-
-const SAMPLE_MESSAGES: SampleMessage[] = [
-  { user: 'StreamerHost', color: '#ff5e7a', badges: [{ setId: 'broadcaster', version: '1' }, { setId: 'partner', version: '1' }], text: 'GG everyone, welcome in! 👋' },
-  { user: 'mod_kira', color: '#52c878', badges: [{ setId: 'moderator', version: '1' }, { setId: 'subscriber', version: '1' }], text: 'Reminder: please keep chat respectful.' },
-  { user: 'VIPFan', color: '#cf46ff', badges: [{ setId: 'vip', version: '1' }, { setId: 'subscriber', version: '1' }], text: 'PogChamp the new emote looks fire' },
-  { user: 'sub_tier3', color: '#1e90ff', badges: [{ setId: 'subscriber', version: '1' }], text: 'just resubbed for 12 months :)', reply: { user: 'StreamerHost', body: 'thanks for being here!' } },
-  { user: 'cheermaster', color: '#f4b400', badges: [{ setId: 'bits', version: '100' }], text: 'Cheer500 incredible play', bits: 500 },
-  { user: 'casual_viewer', color: '#a0a0a0', badges: [], text: 'first time here — really enjoying the stream', isAction: true },
-];
-
-const BADGE_COLORS: Record<string, string> = {
-  broadcaster: '#e12653',
-  moderator: '#34a048',
-  vip: '#cf46ff',
-  subscriber: '#2c76ff',
-  partner: '#9147ff',
-  bits: '#f4b400',
-};
+import type { ChatMessage, OverlayConfig, SevenTvEmote, TwitchEmoteSpan } from '../types';
 
 let currentObjectUrl: string | null = null;
 let renderNonce = 0;
@@ -64,10 +39,13 @@ async function applyToFrame(
   if (!doc) return;
   applyCustomTheme(theme, doc);
 
-  const badges = await loadPreviewBadges(channel, baseUrl);
+  const [badges, sevenTv] = await Promise.all([
+    loadPreviewBadges(channel, baseUrl),
+    loadSevenTvEmotes(null, true),
+  ]);
   if (nonce !== renderNonce || frame.contentDocument !== doc) return;
 
-  renderSampleMessages(doc, theme, badges);
+  renderSampleMessages(doc, theme, badges, sevenTv);
 }
 
 async function loadPreviewBadges(channel: string, baseUrl: string): Promise<BadgeMap> {
@@ -86,95 +64,160 @@ function readTwitchApiBase(baseUrl: string): string {
   }
 }
 
-function renderSampleMessages(doc: Document, theme: CustomTheme, badges: BadgeMap): void {
+function renderSampleMessages(doc: Document, theme: CustomTheme, badges: BadgeMap, sevenTv: Map<string, SevenTvEmote>): void {
   const root = doc.getElementById('chat');
   if (!root) return;
   root.replaceChildren();
 
-  for (const sample of SAMPLE_MESSAGES) {
+  const config = buildPreviewConfig(theme);
+  const samples = buildSampleMessages(sevenTv);
+
+  for (const sample of samples) {
     if (sample.bits && theme.show?.bits === false) continue;
-
-    const msg = doc.createElement('div');
-    msg.className = 'msg' + (sample.isAction ? ' action' : '');
-
-    if (sample.reply && theme.show?.replies !== false) {
-      const reply = doc.createElement('span');
-      reply.className = 'reply';
-      reply.textContent = `@${sample.reply.user}: ${sample.reply.body}`;
-      msg.appendChild(reply);
-    }
-
-    if (sample.badges.length && theme.show?.badges !== false) {
-      const wrap = doc.createElement('span');
-      wrap.className = 'badges';
-      for (const badge of sample.badges) {
-        const info = getBadge(badges, badge.setId, badge.version);
-        if (info) {
-          const img = doc.createElement('img');
-          img.className = 'badge';
-          img.src = info.imageUrl;
-          img.alt = info.title;
-          img.title = info.title;
-          img.addEventListener('error', () => {
-            img.replaceWith(makeBadgeFallback(doc, badge.setId));
-          }, { once: true });
-          wrap.appendChild(img);
-          continue;
-        }
-
-        wrap.appendChild(makeBadgeFallback(doc, badge.setId));
-      }
-      msg.appendChild(wrap);
-    }
-
-    const user = doc.createElement('span');
-    user.className = 'username';
-    user.style.color = sample.color;
-    user.textContent = sample.user;
-    msg.appendChild(user);
-
-    if (!sample.isAction) {
-      const colon = doc.createElement('span');
-      colon.className = 'colon';
-      colon.textContent = ': ';
-      msg.appendChild(colon);
-    } else {
-      msg.appendChild(doc.createTextNode(' '));
-    }
-
-    const body = doc.createElement('span');
-    body.className = 'msg-text';
-    if (sample.bits && theme.show?.bits !== false) {
-      const match = sample.text.match(/Cheer(\d+)/i);
-      if (match) {
-        const start = match.index ?? 0;
-        if (start > 0) body.appendChild(doc.createTextNode(sample.text.slice(0, start)));
-        const cheer = doc.createElement('span');
-        cheer.className = 'cheer';
-        cheer.style.color = BADGE_COLORS.bits;
-        cheer.textContent = match[0];
-        body.appendChild(cheer);
-        const rest = sample.text.slice(start + match[0].length);
-        if (rest) body.appendChild(doc.createTextNode(rest));
-      } else {
-        body.textContent = sample.text;
-      }
-    } else {
-      body.textContent = sample.text;
-    }
-    msg.appendChild(body);
-
-    root.appendChild(msg);
+    root.appendChild(renderMessage(sample, { config, badges, sevenTv, doc }));
   }
 }
 
-function makeBadgeFallback(doc: Document, setId: string): HTMLSpanElement {
-  const pill = doc.createElement('span');
-  pill.className = `badge-fallback badge-fallback--${setId.replace(/[^a-z0-9_-]/gi, '').toLowerCase()}`;
-  pill.style.background = BADGE_COLORS[setId] ?? 'rgba(255,255,255,0.2)';
-  pill.style.borderColor = 'rgba(255,255,255,0.35)';
-  pill.textContent = setId.replace(/_/g, ' ');
-  return pill;
+function buildPreviewConfig(theme: CustomTheme): OverlayConfig {
+  return {
+    channel: 'preview',
+    theme: 'none',
+    twitchApiBase: '',
+    theme64: '',
+    debug: false,
+    fadeOutSeconds: 0,
+    maxMessages: 12,
+    showBadges: theme.show?.badges ?? true,
+    showReplies: theme.show?.replies ?? true,
+    showBits: theme.show?.bits ?? true,
+    showDeleted: false,
+    showStatus: theme.show?.status ?? false,
+    ignoredUsers: [],
+    ignoreCommands: false,
+    animateEmotes: true,
+  };
+}
+
+function buildSampleMessages(sevenTv: Map<string, SevenTvEmote>): ChatMessage[] {
+  const sevenTvNames = pickSevenTvPreviewNames(sevenTv);
+  const [sevenA, sevenB] = sevenTvNames;
+
+  return [
+    makeSampleMessage({
+      id: 'preview-1',
+      login: 'streamerhost',
+      displayName: 'StreamerHost',
+      color: '#ff5e7a',
+      badges: [{ setId: 'broadcaster', version: '1' }, { setId: 'partner', version: '1' }],
+      text: 'GG everyone Kappa Keepo welcome in!',
+      emotes: buildTwitchEmotes('GG everyone Kappa Keepo welcome in!', [
+        { name: 'Kappa', id: '25' },
+        { name: 'Keepo', id: '1902' },
+      ]),
+    }),
+    makeSampleMessage({
+      id: 'preview-2',
+      login: 'mod_kira',
+      displayName: 'mod_kira',
+      color: '#52c878',
+      badges: [{ setId: 'moderator', version: '1' }, { setId: 'subscriber', version: '1' }],
+      text: sevenA && sevenB
+        ? `Global 7TV picks for this preview: ${sevenA} ${sevenB}`
+        : 'Global 7TV emotes will appear here when the 7TV API responds.',
+    }),
+    makeSampleMessage({
+      id: 'preview-3',
+      login: 'vipfan',
+      displayName: 'VIPFan',
+      color: '#cf46ff',
+      badges: [{ setId: 'vip', version: '1' }, { setId: 'subscriber', version: '1' }],
+      text: sevenA
+        ? `That combo of Kappa with ${sevenA} is dangerously spammy.`
+        : 'That combo of Kappa with a 7TV global is dangerously spammy.',
+      emotes: buildTwitchEmotes(
+        sevenA ? `That combo of Kappa with ${sevenA} is dangerously spammy.` : 'That combo of Kappa with a 7TV global is dangerously spammy.',
+        [{ name: 'Kappa', id: '25' }],
+      ),
+    }),
+    makeSampleMessage({
+      id: 'preview-4',
+      login: 'sub_tier3',
+      displayName: 'sub_tier3',
+      color: '#1e90ff',
+      badges: [{ setId: 'subscriber', version: '1' }],
+      text: 'just resubbed for 12 months :)',
+      replyParentDisplayName: 'StreamerHost',
+      replyParentMsgBody: 'thanks for being here!',
+    }),
+    makeSampleMessage({
+      id: 'preview-5',
+      login: 'cheermaster',
+      displayName: 'cheermaster',
+      color: '#f4b400',
+      badges: [{ setId: 'bits', version: '100' }],
+      text: 'Cheer500 incredible play',
+      bits: 500,
+    }),
+    makeSampleMessage({
+      id: 'preview-6',
+      login: 'casual_viewer',
+      displayName: 'casual_viewer',
+      color: '#a0a0a0',
+      badges: [],
+      text: sevenB ? `first time here ${sevenB} really enjoying the stream` : 'first time here really enjoying the stream',
+      isAction: true,
+    }),
+  ];
+}
+
+function pickSevenTvPreviewNames(sevenTv: Map<string, SevenTvEmote>): [string, string] {
+  const candidates = [...sevenTv.values()]
+    .filter((emote) => !emote.zeroWidth && /^\S+$/.test(emote.name))
+    .slice(0, 2)
+    .map((emote) => emote.name);
+  return [candidates[0] ?? '', candidates[1] ?? ''];
+}
+
+function buildTwitchEmotes(text: string, defs: Array<{ name: string; id: string }>): TwitchEmoteSpan[] {
+  const codePoints = Array.from(text);
+  const spans: TwitchEmoteSpan[] = [];
+
+  for (const def of defs) {
+    const token = Array.from(def.name);
+    const start = findCodePointToken(codePoints, token);
+    if (start < 0) continue;
+    spans.push({ id: def.id, start, end: start + token.length - 1 });
+  }
+
+  return spans.sort((a, b) => a.start - b.start);
+}
+
+function findCodePointToken(haystack: string[], needle: string[]): number {
+  outer: for (let index = 0; index <= haystack.length - needle.length; index++) {
+    for (let offset = 0; offset < needle.length; offset++) {
+      if (haystack[index + offset] !== needle[offset]) continue outer;
+    }
+    return index;
+  }
+  return -1;
+}
+
+function makeSampleMessage(partial: Partial<ChatMessage> & Pick<ChatMessage, 'id' | 'login' | 'displayName' | 'color' | 'text'>): ChatMessage {
+  return {
+    id: partial.id,
+    userId: partial.login,
+    login: partial.login,
+    displayName: partial.displayName,
+    color: partial.color,
+    badges: partial.badges ?? [],
+    text: partial.text,
+    emotes: partial.emotes ?? [],
+    isAction: partial.isAction ?? false,
+    bits: partial.bits ?? 0,
+    replyParentDisplayName: partial.replyParentDisplayName,
+    replyParentMsgBody: partial.replyParentMsgBody,
+    tmiSentTs: Date.now(),
+  };
 }
 
 function buildPreviewDocument(presetTheme: string, theme: CustomTheme): string {

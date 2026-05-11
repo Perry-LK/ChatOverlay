@@ -19,51 +19,74 @@
 
       <section class="cu__layout">
         <form id="cu-form" class="cu__form" autocomplete="off">
+          <div class="cu__tabs" data-tabs>
+            <div class="cu__tablist" role="tablist" aria-label="Customiser sections">
+              <button type="button" class="cu__tab is-active" role="tab" aria-selected="true" aria-controls="cu-panel-setup" id="cu-tab-setup" data-tab="setup">Setup</button>
+              <button type="button" class="cu__tab" role="tab" aria-selected="false" aria-controls="cu-panel-packs" id="cu-tab-packs" data-tab="packs">Theme packs</button>
+              <button type="button" class="cu__tab" role="tab" aria-selected="false" aria-controls="cu-panel-text" id="cu-tab-text" data-tab="text">Text</button>
+              <button type="button" class="cu__tab" role="tab" aria-selected="false" aria-controls="cu-panel-style" id="cu-tab-style" data-tab="style">Card & layout</button>
+              <button type="button" class="cu__tab" role="tab" aria-selected="false" aria-controls="cu-panel-css" id="cu-tab-css" data-tab="css">CSS</button>
+            </div>
 
-          <fieldset class="cu__packs">
-            <legend>Theme packs</legend>
-            <p class="cu__hint">Click a pack to apply a curated bundle of variables. You can then tweak individual values below — picking <em>Custom</em> on any field detaches that field from the pack.</p>
-            <div id="cu-theme-packs" class="cu__pack-grid"></div>
-          </fieldset>
+            <section class="cu__tab-panel is-active" role="tabpanel" id="cu-panel-setup" aria-labelledby="cu-tab-setup" data-tab-panel="setup">
+              <div class="cu__panel-grid cu__panel-grid--two">
+                <fieldset>
+                  <legend>Output URL</legend>
+                  <label>
+                    Base overlay URL
+                    <input type="text" name="baseUrl" id="cu-baseUrl" placeholder="https://you.github.io/ChatOverlay/" />
+                  </label>
+                  <label>
+                    Channel
+                    <input type="text" name="channel" id="cu-channel" placeholder="PerryLK" />
+                    <span class="cu__hint">Example: <code>PerryLK</code>. This channel is used to load badge previews, including channel-specific bits badges.</span>
+                  </label>
+                  <label>
+                    Preset theme
+                    <select name="theme" id="cu-theme">
+                      <option value="comfy">comfy</option>
+                      <option value="minimalist">minimalist</option>
+                      <option value="none">none</option>
+                    </select>
+                  </label>
+                </fieldset>
 
-          <fieldset>
-            <legend>Output URL</legend>
-            <label>
-              Base overlay URL
-              <input type="text" name="baseUrl" id="cu-baseUrl" placeholder="https://you.github.io/ChatOverlay/" />
-            </label>
-            <label>
-              Channel
-              <input type="text" name="channel" id="cu-channel" placeholder="PerryLK" />
-              <span class="cu__hint">Example: <code>PerryLK</code>. This channel is used to load badge previews, including channel-specific bits badges.</span>
-            </label>
-            <label>
-              Preset theme
-              <select name="theme" id="cu-theme">
-                <option value="comfy">comfy</option>
-                <option value="minimalist">minimalist</option>
-                <option value="none">none</option>
-              </select>
-            </label>
-          </fieldset>
+                <fieldset>
+                  <legend>Visibility</legend>
+                  <label class="cu__check"><input type="checkbox" id="cu-showBadges" checked /> Badges</label>
+                  <label class="cu__check"><input type="checkbox" id="cu-showReplies" checked /> Reply context lines</label>
+                  <label class="cu__check"><input type="checkbox" id="cu-showBits" checked /> Cheers / bits</label>
+                  <label class="cu__check"><input type="checkbox" id="cu-showStatus" /> Status / debug indicator</label>
+                </fieldset>
+              </div>
+            </section>
 
-          <fieldset>
-            <legend>Visibility</legend>
-            <label class="cu__check"><input type="checkbox" id="cu-showBadges" checked /> Badges</label>
-            <label class="cu__check"><input type="checkbox" id="cu-showReplies" checked /> Reply context lines</label>
-            <label class="cu__check"><input type="checkbox" id="cu-showBits" checked /> Cheers / bits</label>
-            <label class="cu__check"><input type="checkbox" id="cu-showStatus" /> Status / debug indicator</label>
-          </fieldset>
+            <section class="cu__tab-panel" role="tabpanel" id="cu-panel-packs" aria-labelledby="cu-tab-packs" data-tab-panel="packs" hidden>
+              <fieldset class="cu__packs">
+                <legend>Theme packs</legend>
+                <p class="cu__hint">Click a pack to apply a curated bundle of variables. You can then tweak individual values below — picking <em>Custom</em> on any field detaches that field from the pack.</p>
+                <div id="cu-theme-packs" class="cu__pack-grid"></div>
+              </fieldset>
+            </section>
 
-          <div id="cu-vars" class="cu__vars-host"></div>
+            <section class="cu__tab-panel" role="tabpanel" id="cu-panel-text" aria-labelledby="cu-tab-text" data-tab-panel="text" hidden>
+              <div id="cu-vars-text" class="cu__panel-grid cu__panel-grid--two"></div>
+            </section>
 
-          <fieldset>
-            <legend>Raw CSS overrides</legend>
-            <label class="cu__full">
-              <span>Appended after the theme. Use to target individual classes.</span>
-              <textarea id="cu-css" rows="6" placeholder=".username { letter-spacing: 0.5px; } .badge { width: 1.1em; height: 1.1em; }"></textarea>
-            </label>
-          </fieldset>
+            <section class="cu__tab-panel" role="tabpanel" id="cu-panel-style" aria-labelledby="cu-tab-style" data-tab-panel="style" hidden>
+              <div id="cu-vars-style" class="cu__panel-grid cu__panel-grid--two"></div>
+            </section>
+
+            <section class="cu__tab-panel" role="tabpanel" id="cu-panel-css" aria-labelledby="cu-tab-css" data-tab-panel="css" hidden>
+              <fieldset>
+                <legend>Raw CSS overrides</legend>
+                <label class="cu__full">
+                  <span>Appended after the theme. Use to target individual classes.</span>
+                  <textarea id="cu-css" rows="16" placeholder=".username { letter-spacing: 0.5px; } .badge { width: 1.1em; height: 1.1em; }"></textarea>
+                </label>
+              </fieldset>
+            </section>
+          </div>
         </form>
 
         <aside class="cu__side">

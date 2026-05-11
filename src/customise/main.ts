@@ -35,7 +35,17 @@ const packPicker = createThemePackPicker({
 });
 
 const form = createVariableForm({
-  mount: q('#cu-vars'),
+  mount: q('#cu-vars-style'),
+  groupMounts: {
+    message: q('#cu-vars-text'),
+    username: q('#cu-vars-text'),
+    badges: q('#cu-vars-style'),
+    emote: q('#cu-vars-style'),
+    card: q('#cu-vars-style'),
+    reply: q('#cu-vars-style'),
+    animation: q('#cu-vars-style'),
+    layout: q('#cu-vars-style'),
+  },
   getValue: (name) => state.vars[name] ?? '',
   onVariableChange: (name, value) => {
     if (value.trim()) state.vars[name] = value.trim();
@@ -56,6 +66,7 @@ q<HTMLInputElement>('#cu-showReplies').checked = state.show.replies;
 q<HTMLInputElement>('#cu-showBits').checked = state.show.bits;
 q<HTMLInputElement>('#cu-showStatus').checked = state.show.status;
 q<HTMLTextAreaElement>('#cu-css').value = state.css;
+setupTabs();
 
 // Highlight the pack matching the imported theme64 (if any).
 const detected = state.themePack ? findThemePack(state.themePack) : detectThemePack(state.vars);
@@ -171,6 +182,40 @@ function refreshOutput(): void {
   q<HTMLTextAreaElement>('#cu-output').value = url;
   q<HTMLPreElement>('#cu-json').textContent = JSON.stringify(theme, null, 2);
   renderPreview(q<HTMLIFrameElement>('#cu-preview'), theme, state.theme, state.channel, state.baseUrl);
+}
+
+function setupTabs(): void {
+  const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-tab]')];
+  const panels = [...document.querySelectorAll<HTMLElement>('[data-tab-panel]')];
+  if (!buttons.length || !panels.length) return;
+
+  const activate = (tabId: string): void => {
+    for (const button of buttons) {
+      const active = button.dataset.tab === tabId;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-selected', String(active));
+      button.tabIndex = active ? 0 : -1;
+    }
+    for (const panel of panels) {
+      const active = panel.dataset.tabPanel === tabId;
+      panel.classList.toggle('is-active', active);
+      panel.hidden = !active;
+    }
+  };
+
+  buttons.forEach((button, index) => {
+    button.addEventListener('click', () => activate(button.dataset.tab || ''));
+    button.addEventListener('keydown', (event) => {
+      if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+      event.preventDefault();
+      const delta = event.key === 'ArrowRight' ? 1 : -1;
+      const next = buttons[(index + delta + buttons.length) % buttons.length];
+      next.focus();
+      activate(next.dataset.tab || '');
+    });
+  });
+
+  activate(buttons[0]?.dataset.tab || 'setup');
 }
 
 // Re-export the runtime application helper for any consumer that imports the
