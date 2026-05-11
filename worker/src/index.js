@@ -2,7 +2,7 @@
  * Cloudflare Worker: Twitch Helix proxy for Chat Overlay.
  *
  * Exposes only the read-only endpoints the overlay needs and caches responses
- * heavily so traffic to Twitch Helix stays minimal.
+ * heavily so traffic to Twitch Helix stays minimal. Created by PerryLK
  *
  * Required secrets (set with `wrangler secret put`):
  *   TWITCH_CLIENT_ID
