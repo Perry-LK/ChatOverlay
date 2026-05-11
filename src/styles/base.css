@@ -2,6 +2,8 @@
 	--co-font: 'Inter', 'Segoe UI', system-ui, sans-serif;
 	--co-font-size: 20px;
 	--co-line-height: 1.35;
+	--co-font-weight: 400;
+	--co-letter-spacing: normal;
 
 	--co-text: #ffffff;
 	--co-text-shadow:
@@ -10,14 +12,34 @@
 		1px 1px 2px #000;
 
 	--co-username-weight: 700;
+	--co-username-transform: none;
+	--co-username-letter-spacing: normal;
+
 	--co-message-gap: 6px;
 	--co-padding: 6px 10px;
 	--co-radius: 6px;
 
 	--co-emote-size: 1.6em;
+	--co-badge-size: 1em;
+	--co-badge-gap: 3px;
+
+	--co-chat-padding: 12px;
+	--co-chat-align: flex-end;
+
+	--co-card-bg: transparent;
+	--co-card-border: 0 solid transparent;
+	--co-card-shadow: none;
+	--co-card-backdrop: none;
+	--co-card-max-width: 100%;
+
+	--co-reply-opacity: 0.75;
+	--co-reply-style: normal;
+	--co-reply-color: inherit;
 
 	--co-fade-duration: 400ms;
 	--co-enter-duration: 220ms;
+	--co-enter-translate: 6px;
+	--co-enter-easing: ease-out;
 }
 
 html,
@@ -28,6 +50,8 @@ body {
 	color: var(--co-text);
 	font-family: var(--co-font);
 	font-size: var(--co-font-size);
+	font-weight: var(--co-font-weight);
+	letter-spacing: var(--co-letter-spacing);
 	line-height: var(--co-line-height);
 	overflow: hidden;
 	text-shadow: var(--co-text-shadow);
@@ -37,11 +61,11 @@ body {
 .chat {
 	display: flex;
 	flex-direction: column;
-	justify-content: flex-end;
+	justify-content: var(--co-chat-align);
 	gap: var(--co-message-gap);
 	width: 100vw;
 	height: 100vh;
-	padding: 12px;
+	padding: var(--co-chat-padding);
 	box-sizing: border-box;
 	overflow: hidden;
 	word-wrap: break-word;
@@ -51,7 +75,13 @@ body {
 .msg {
 	padding: var(--co-padding);
 	border-radius: var(--co-radius);
-	animation: co-enter var(--co-enter-duration) ease-out;
+	background: var(--co-card-bg);
+	border: var(--co-card-border);
+	box-shadow: var(--co-card-shadow);
+	backdrop-filter: var(--co-card-backdrop);
+	-webkit-backdrop-filter: var(--co-card-backdrop);
+	max-width: var(--co-card-max-width);
+	animation: co-enter var(--co-enter-duration) var(--co-enter-easing);
 	transition: opacity var(--co-fade-duration) ease;
 }
 
@@ -78,13 +108,13 @@ body {
 	display: inline-flex;
 	align-items: center;
 	vertical-align: middle;
-	gap: 3px;
+	gap: var(--co-badge-gap);
 	margin-right: 4px;
 }
 
 .badge {
-	width: 1em;
-	height: 1em;
+	width: var(--co-badge-size);
+	height: var(--co-badge-size);
 	vertical-align: middle;
 }
 
@@ -129,6 +159,8 @@ body {
 
 .username {
 	font-weight: var(--co-username-weight);
+	letter-spacing: var(--co-username-letter-spacing);
+	text-transform: var(--co-username-transform);
 	margin-right: 2px;
 }
 
@@ -166,7 +198,9 @@ body {
 .reply {
 	display: block;
 	font-size: 0.75em;
-	opacity: 0.75;
+	opacity: var(--co-reply-opacity);
+	font-style: var(--co-reply-style);
+	color: var(--co-reply-color);
 	margin-bottom: 2px;
 }
 
@@ -179,7 +213,7 @@ body {
 }
 
 @keyframes co-enter {
-	from { opacity: 0; transform: translateY(6px); }
+	from { opacity: 0; transform: translateY(var(--co-enter-translate)); }
 	to { opacity: 1; transform: translateY(0); }
 }
 

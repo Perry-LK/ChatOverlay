@@ -10,7 +10,7 @@
     <main class="cu">
       <header class="cu__header">
         <h1>Chat Overlay customiser</h1>
-        <p>Live-preview, then copy a single overlay URL with all your settings baked in.</p>
+        <p>Pick a starting theme pack, fine-tune any variable, then copy a single overlay URL with everything baked in.</p>
         <p class="cu__hint">
           The configuration is encoded into a <code>?theme64=…</code> URL parameter. Nothing is uploaded;
           everything stays in your browser.
@@ -19,6 +19,13 @@
 
       <section class="cu__layout">
         <form id="cu-form" class="cu__form" autocomplete="off">
+
+          <fieldset class="cu__packs">
+            <legend>Theme packs</legend>
+            <p class="cu__hint">Click a pack to apply a curated bundle of variables. You can then tweak individual values below — picking <em>Custom</em> on any field detaches that field from the pack.</p>
+            <div id="cu-theme-packs" class="cu__pack-grid"></div>
+          </fieldset>
+
           <fieldset>
             <legend>Output URL</legend>
             <label>
@@ -28,6 +35,7 @@
             <label>
               Channel
               <input type="text" name="channel" id="cu-channel" placeholder="PerryLK" />
+              <span class="cu__hint">Example: <code>PerryLK</code>. This channel is used to load badge previews, including channel-specific bits badges.</span>
             </label>
             <label>
               Preset theme
@@ -47,25 +55,7 @@
             <label class="cu__check"><input type="checkbox" id="cu-showStatus" /> Status / debug indicator</label>
           </fieldset>
 
-          <fieldset id="cu-vars-message">
-            <legend>Message text</legend>
-          </fieldset>
-
-          <fieldset id="cu-vars-username">
-            <legend>Username</legend>
-          </fieldset>
-
-          <fieldset id="cu-vars-emote">
-            <legend>Emotes</legend>
-          </fieldset>
-
-          <fieldset id="cu-vars-card">
-            <legend>Message card</legend>
-          </fieldset>
-
-          <fieldset id="cu-vars-animation">
-            <legend>Animation</legend>
-          </fieldset>
+          <div id="cu-vars" class="cu__vars-host"></div>
 
           <fieldset>
             <legend>Raw CSS overrides</legend>
@@ -91,6 +81,7 @@
               <button type="button" id="cu-open">Open in new tab</button>
               <button type="button" id="cu-export">Download JSON</button>
               <button type="button" id="cu-import">Import JSON…</button>
+              <button type="button" id="cu-reset" class="cu__button--ghost">Reset all</button>
               <input type="file" id="cu-import-file" accept="application/json" hidden />
             </div>
             <details>
@@ -105,7 +96,8 @@
         <p>
           Visibility flags are written to the JSON payload under <code>show</code>, so the overlay
           honours them through the same <code>?theme64</code>. Channel and preset theme are added as
-          plain URL parameters so they remain easy to tweak by hand.
+          plain URL parameters so they remain easy to tweak by hand. Google Font presets are
+          auto-imported in the exported theme so OBS browser sources render them too.
         </p>
       </footer>
     </main>

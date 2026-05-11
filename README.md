@@ -33,6 +33,17 @@ npm run dev
 Open the printed URL in a browser. Add `?channel=PerryLK` to test a different
 channel without editing `config.json`.
 
+## Documentation
+
+The full project setup and deployment guides now live in the documentation hub:
+
+- [Documentation hub](docs/README.md)
+- [Local development](docs/local-development.md)
+- [Project configuration](docs/configuration.md)
+- [Twitch proxy setup](docs/proxy-setup.md)
+- [Hosting options](docs/hosting-options.md)
+- [Custom domains](docs/custom-domains.md)
+
 ## Configuration
 
 Configuration is layered. Each layer overrides the previous one, so you can
@@ -254,15 +265,49 @@ only serves your site:
 ALLOW_ORIGIN = "https://you.github.io"
 ```
 
-## Customiser (`/customise/`)
+## Customiser (`/customise/`) and `theme64`
 
-A built-in editor at `/customise/` lets you visually tune every part of the
-chat (message text, username, badges, replies, cheers, emotes, message card)
-and exports the result as a **single shareable URL** with everything baked in:
+The tool that creates a custom `theme64` value is the built-in customiser page
+at `/customise/`.
+
+Open one of these URLs:
+
+- Local dev: `http://127.0.0.1:5173/customise/`
+- Repo-hosted GitHub Pages: `https://<your-username>.github.io/<repo-name>/customise/`
+- Custom domain: `https://your-domain.example/customise/`
+
+The customiser lets you visually tune every part of the chat (message text,
+username, badges, replies, cheers, emotes, message card) and exports the
+result as a **single shareable URL** with everything baked in:
 
 ```
 https://you.github.io/ChatOverlay/?channel=PerryLK&theme64=eyJ2YXJzIjp7Ii0...
 ```
+
+How to use it:
+
+1. Open `/customise/`.
+2. Set the **Base overlay URL** to the overlay you actually want OBS to load.
+3. Set the **Channel** and optional preset theme (`comfy`, `minimalist`, or `none`).
+4. Adjust the visual controls and any raw CSS overrides.
+5. Copy the generated URL from the right-hand panel.
+6. Paste that final URL into OBS as the browser source URL.
+
+What the customiser writes:
+
+- `channel` stays as a normal query parameter so it is easy to edit by hand.
+- `theme` stays as a normal query parameter when it is not the default `comfy` preset.
+- `theme64` contains the custom theme payload encoded as URL-safe base64.
+
+The decoded `theme64` JSON contains:
+
+- `vars`: CSS variable overrides such as `--co-text`, `--co-font-size`, and `--co-radius`.
+- `css`: optional raw CSS appended after the base theme.
+- `show`: visibility toggles for badges, replies, bits, and the status indicator.
+- `meta`: editor metadata such as the export timestamp; ignored by the overlay at runtime.
+
+If you leave everything at its defaults, the customiser omits `theme64`
+entirely and outputs a simpler overlay URL.
 
 Features:
 
@@ -273,7 +318,8 @@ Features:
 - Import / export the underlying JSON for sharing or version control.
 
 The encoded payload travels in `?theme64=...` (URL-safe base64). Nothing is
-uploaded — the editor produces the URL entirely client-side.
+uploaded, stored, or sent to a server by the customiser; it produces the URL
+entirely client-side.
 
 ## Debug mode
 

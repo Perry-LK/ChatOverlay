@@ -4,6 +4,9 @@
  * The whole object is JSON-encoded then base64url-encoded into a single
  * `?theme64=...` URL parameter so a fully customised overlay is shareable as
  * one link with no server-side storage.
+ *
+ * The catalogue of customisable variables and their presets lives in
+ * `./presets/variables.ts` so this file stays a pure data contract.
  */
 export interface CustomTheme {
   /** Map of CSS variables (e.g. "--co-text") to values. */
@@ -18,7 +21,12 @@ export interface CustomTheme {
     status: boolean;
   }>;
   /** Optional metadata for the editor; ignored at runtime. */
-  meta?: { name?: string; createdAt?: string };
+  meta?: {
+    name?: string;
+    createdAt?: string;
+    /** Id of the curated theme pack the user started from, if any. */
+    themePack?: string;
+  };
 }
 
 /* --------------------------------------------------------------------- */
@@ -94,28 +102,3 @@ export function applyCustomTheme(theme: CustomTheme | null, target: Document = d
     target.head.appendChild(style);
   }
 }
-
-/** Keys allowed in `CustomTheme.vars` for the editor; documents the contract. */
-export const CUSTOMISABLE_VARS: { name: string; label: string; type: 'color' | 'length' | 'text' | 'number'; group: string }[] = [
-  // Message text
-  { name: '--co-text', label: 'Text colour', type: 'color', group: 'message' },
-  { name: '--co-font', label: 'Font family', type: 'text', group: 'message' },
-  { name: '--co-font-size', label: 'Font size', type: 'length', group: 'message' },
-  { name: '--co-line-height', label: 'Line height', type: 'number', group: 'message' },
-  { name: '--co-text-shadow', label: 'Text shadow', type: 'text', group: 'message' },
-
-  // Username
-  { name: '--co-username-weight', label: 'Username weight', type: 'number', group: 'username' },
-
-  // Emotes
-  { name: '--co-emote-size', label: 'Emote size', type: 'length', group: 'emote' },
-
-  // Card
-  { name: '--co-padding', label: 'Card padding', type: 'text', group: 'card' },
-  { name: '--co-radius', label: 'Card radius', type: 'length', group: 'card' },
-  { name: '--co-message-gap', label: 'Gap between messages', type: 'length', group: 'card' },
-
-  // Animation
-  { name: '--co-fade-duration', label: 'Fade duration', type: 'length', group: 'animation' },
-  { name: '--co-enter-duration', label: 'Enter duration', type: 'length', group: 'animation' },
-];
