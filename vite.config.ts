@@ -18,7 +18,9 @@ export default defineConfig(({ command }) => ({
     rollupOptions: {
       input: {
         main: here('./index.html'),
+        chat: here('./chat/index.html'),
         customise: here('./customise/index.html'),
+        alerts: here('./alerts/index.html'),
       },
     },
   }

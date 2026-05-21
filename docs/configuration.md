@@ -62,7 +62,7 @@ Every setting can be passed as a query parameter, which makes it suitable for OB
 Example:
 
 ```text
-https://you.github.io/ChatOverlay/?channel=PerryLK&theme=minimalist&fadeOutSeconds=30&showBadges=false&showStatus=false
+https://you.github.io/ChatOverlay/chat/?channel=PerryLK&theme=minimalist&fadeOutSeconds=30&showBadges=false&showStatus=false
 ```
 
 Fully explicit example:

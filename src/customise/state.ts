@@ -29,8 +29,12 @@ export function makeInitialState(): FormState {
   const seed: CustomTheme | null = importedTheme64 ? decodeTheme(importedTheme64) : null;
 
   const baseFromUrl = params.get('base') || params.get('baseUrl') || '';
+  // The chat overlay now lives under /chat/. Strip the customiser path from
+  // the auto-detected origin and tack on /chat/ so the generated URL points at
+  // the right browser source by default.
+  const defaultBase = DEFAULT_BASE_URL.replace(/\/customise\/?$/, '/').replace(/\/$/, '') + '/chat/';
   return {
-    baseUrl: baseFromUrl || DEFAULT_BASE_URL.replace(/\/customise\/$/, '/'),
+    baseUrl: baseFromUrl || defaultBase,
     channel: params.get('channel') || 'PerryLK',
     theme: params.get('theme') || 'comfy',
     themePack: seed?.meta?.themePack ?? '',

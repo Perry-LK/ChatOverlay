@@ -30,8 +30,21 @@ npm install
 npm run dev
 ```
 
-Open the printed URL in a browser. Add `?channel=PerryLK` to test a different
-channel without editing `config.json`.
+Open the printed URL in a browser. The root page is a small landing menu —
+the chat overlay itself lives at `/chat/`. Add `?channel=PerryLK` (e.g.
+`http://127.0.0.1:5173/chat/?channel=PerryLK`) to test a different channel
+without editing `config.json`.
+
+## Pages
+
+Each feature is its own browser source so OBS only loads what it needs:
+
+| Page          | Path          | Purpose                                                 |
+| ------------- | ------------- | ------------------------------------------------------- |
+| Landing       | `/`           | Quick links to the three tools.                         |
+| Chat overlay  | `/chat/`      | The main transparent chat browser source.               |
+| Alerts overlay| `/alerts/`    | Pop-up sub / gift / raid / cheer alerts.                |
+| Customiser    | `/customise/` | Theme builder that produces a `?theme64=…` URL.         |
 
 ## Documentation
 
@@ -40,6 +53,7 @@ The full project setup and deployment guides now live in the documentation hub:
 - [Documentation hub](docs/README.md)
 - [Local development](docs/local-development.md)
 - [Project configuration](docs/configuration.md)
+- [Alerts overlay](docs/alerts.md)
 - [Twitch proxy setup](docs/proxy-setup.md)
 - [Hosting options](docs/hosting-options.md)
 - [Custom domains](docs/custom-domains.md)
@@ -67,7 +81,7 @@ Every setting can be set straight from the browser-source URL, so a single
 deployment can power many overlays without editing any files:
 
 ```
-https://you.github.io/ChatOverlay/?channel=PerryLK&theme=minimalist&fadeOutSeconds=30&showBadges=false&showStatus=false
+https://you.github.io/ChatOverlay/chat/?channel=PerryLK&theme=minimalist&fadeOutSeconds=30&showBadges=false&showStatus=false
 ```
 
 A fully-explicit example covering every supported parameter:
@@ -281,7 +295,7 @@ username, badges, replies, cheers, emotes, message card) and exports the
 result as a **single shareable URL** with everything baked in:
 
 ```
-https://you.github.io/ChatOverlay/?channel=PerryLK&theme64=eyJ2YXJzIjp7Ii0...
+https://you.github.io/ChatOverlay/chat/?channel=PerryLK&theme64=eyJ2YXJzIjp7Ii0...
 ```
 
 How to use it:
@@ -348,8 +362,8 @@ Two built-in templates ship in `public/themes/`:
 Switch theme in `public/config.json` or by URL:
 
 ```
-https://you.github.io/ChatOverlay/?theme=comfy
-https://you.github.io/ChatOverlay/?theme=minimalist
+https://you.github.io/ChatOverlay/chat/?theme=comfy
+https://you.github.io/ChatOverlay/chat/?theme=minimalist
 ```
 
 Drop a `custom.css` next to `index.html` (in `/public` for dev, or in the
@@ -378,21 +392,27 @@ Or override individual classes: `.msg`, `.username`, `.badge`, `.emote`,
 
 ## Source layout
 
-The `src/` folder is organized by concern:
+Each browser-source page has its own entry HTML at the repo root and its own
+folder under `src/`, so adding a new page is symmetric:
 
-- `src/app/`: overlay controller, IRC-to-chat mapping, theme application.
+- `index.html` + landing page menu.
+- `chat/index.html` + `src/chat/` — main chat overlay entry and stylesheet.
+- `alerts/index.html` + `src/alerts/` — alerts overlay entry, parser, queue.
+- `customise/index.html` + `src/customise/` — customiser app.
+
+Shared modules (used by more than one page) live alongside:
+
+- `src/app/`: overlay controller, IRC-to-chat mapping, theme loader.
 - `src/services/twitch/`: Twitch IRC, badge loading, user-id lookup.
 - `src/services/emotes/`: 7TV emote loading.
-- `src/ui/`: DOM rendering.
-- `src/styles/`: base stylesheet entry.
-- `src/main.ts`: application entrypoint.
+- `src/ui/`: DOM rendering helpers used by the chat overlay and customiser preview.
 - `src/config.ts` and `src/types.ts`: shared runtime config and types.
 
 ## Adding to OBS
 
 1. In OBS, add a **Browser** source.
 2. URL: your deployed page or local web server URL, with optional query params.
-   Example: `https://you.github.io/ChatOverlay/?channel=PerryLK&theme=comfy`.
+   Example: `https://you.github.io/ChatOverlay/chat/?channel=PerryLK&theme=comfy`.
 3. Width / height: whatever fits your layout (e.g. 480 × 720).
 4. Tick **Shutdown source when not visible** if you want to save resources.
 5. Background is fully transparent — no extra config needed.

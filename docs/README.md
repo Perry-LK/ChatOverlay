@@ -6,6 +6,7 @@ This folder is the navigation hub for setting up, configuring, hosting, and depl
 
 - [Local development](./local-development.md)
 - [Project configuration](./configuration.md)
+- [Alerts overlay](./alerts.md)
 - [Twitch proxy setup](./proxy-setup.md)
 - [Hosting options](./hosting-options.md)
 - [Custom domains](./custom-domains.md)

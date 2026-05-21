@@ -16,12 +16,15 @@ npm install
 npm run dev
 ```
 
-Open the printed local URL in a browser.
+Open the printed local URL in a browser. The root URL is a small landing
+menu — the chat overlay itself lives at `/chat/`, the alerts overlay at
+`/alerts/`, and the customiser at `/customise/`.
 
-To test a specific channel without editing files, append a URL parameter:
+To test a specific channel without editing files, append a URL parameter to
+the chat page:
 
 ```text
-?channel=PerryLK
+http://127.0.0.1:5173/chat/?channel=PerryLK
 ```
 
 ## Local production-style preview
@@ -69,7 +72,10 @@ Then point the overlay at the proxy with one of these:
 
 ## Common local URLs
 
-- Default Vite dev server: `http://127.0.0.1:5173`
+- Landing menu: `http://127.0.0.1:5173/`
+- Chat overlay:  `http://127.0.0.1:5173/chat/`
+- Alerts overlay: `http://127.0.0.1:5173/alerts/`
+- Customiser:    `http://127.0.0.1:5173/customise/`
 - Local proxy health: `http://localhost:8787/health`
 - Local proxy global badges: `http://localhost:8787/api/twitch/chat/badges/global`
 

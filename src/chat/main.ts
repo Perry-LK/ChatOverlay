@@ -1,11 +1,11 @@
-import { Overlay } from './app/overlay';
-import { applyTheme, preloadTheme } from './app/theme';
-import { DebugPanel } from './app/debug';
-import { loadConfig, readEarlyTheme } from './config';
-import { loadSevenTvEmotes } from './services/emotes/sevenTv';
-import { loadBadges } from './services/twitch/badges';
-import { TwitchIrc } from './services/twitch/irc';
-import { resolveTwitchUserId } from './services/twitch/user';
+import { Overlay } from '../app/overlay';
+import { applyTheme, preloadTheme } from '../app/theme';
+import { DebugPanel } from '../app/debug';
+import { loadConfig, readEarlyTheme } from '../config';
+import { loadSevenTvEmotes } from '../services/emotes/sevenTv';
+import { loadBadges } from '../services/twitch/badges';
+import { TwitchIrc } from '../services/twitch/irc';
+import { resolveTwitchUserId } from '../services/twitch/user';
 
 /* -------------------------------------------------------------------------- */
 /*  Bootstrap                                                                  */

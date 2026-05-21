@@ -1,5 +1,5 @@
 import { applyCustomTheme, type CustomTheme } from './theme';
-import baseCss from '../styles/base.css?raw';
+import baseCss from '../chat/styles.css?raw';
 import { loadBadges, type BadgeMap } from '../services/twitch/badges';
 import { resolveTwitchUserId } from '../services/twitch/user';
 import { loadSevenTvEmotes } from '../services/emotes/sevenTv';

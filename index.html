@@ -4,11 +4,595 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chat Overlay</title>
-    <link rel="stylesheet" href="/src/styles/base.css" />
-    <!-- Theme CSS and optional custom.css are injected by src/main.ts after config loads. -->
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0c0f12;
+        --bg-soft: #12171c;
+        --panel: rgba(255, 255, 255, 0.04);
+        --panel-strong: rgba(255, 255, 255, 0.065);
+        --border: rgba(255, 255, 255, 0.08);
+        --border-strong: rgba(255, 255, 255, 0.14);
+        --accent: #d8ff72;
+        --accent-soft: rgba(216, 255, 114, 0.14);
+        --text: #edf1f4;
+        --muted: #9ca8b3;
+        --muted-strong: #c4cdd5;
+        --shadow: 0 18px 60px rgba(0, 0, 0, 0.32);
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 0% 0%, rgba(216, 255, 114, 0.11), transparent 28%),
+          radial-gradient(circle at 100% 100%, rgba(126, 182, 255, 0.12), transparent 34%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 24%),
+          var(--bg);
+        color: var(--text);
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        padding: 40px 20px 56px;
+      }
+      a { color: inherit; }
+      code {
+        font-family: Consolas, 'SFMono-Regular', monospace;
+        font-size: 0.95em;
+      }
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+      }
+      .shell {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+      }
+      .shell::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(135deg, rgba(216, 255, 114, 0.12), transparent 20%),
+          linear-gradient(315deg, rgba(126, 182, 255, 0.08), transparent 24%);
+        opacity: 0.7;
+      }
+      .topbar {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(8, 10, 12, 0.26);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .brand__mark {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        background: var(--accent);
+        box-shadow: 0 0 28px rgba(216, 255, 114, 0.48);
+      }
+      .brand__text {
+        font-size: 0.9rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--muted-strong);
+      }
+      .topbar__links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .topbar__links a,
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.03);
+        text-decoration: none;
+        color: var(--muted-strong);
+        transition: border-color 180ms ease, background 180ms ease, color 180ms ease, transform 180ms ease;
+      }
+      .topbar__links a:hover,
+      .topbar__links a:focus-visible,
+      .button:hover,
+      .button:focus-visible {
+        border-color: var(--border-strong);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        outline: none;
+      }
+      .button--primary {
+        border-color: transparent;
+        background: var(--accent);
+        color: #0b0f0b;
+        font-weight: 700;
+      }
+      .button--primary:hover,
+      .button--primary:focus-visible {
+        background: #e5ff9b;
+        transform: translateY(-1px);
+      }
+      .hero {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+        gap: 24px;
+        padding: 34px 22px 22px;
+      }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 32px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      h1 {
+        margin: 18px 0 14px;
+        font-size: clamp(2.4rem, 6vw, 4.8rem);
+        line-height: 0.96;
+        letter-spacing: -0.045em;
+      }
+      .hero__copy p {
+        margin: 0;
+        max-width: 50rem;
+        color: var(--muted-strong);
+        font-size: 1.04rem;
+        line-height: 1.7;
+      }
+      .hero__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 22px;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 28px;
+      }
+      .stat {
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.025);
+      }
+      .stat strong {
+        display: block;
+        font-size: 1.15rem;
+        margin-bottom: 4px;
+      }
+      .stat span {
+        color: var(--muted);
+        font-size: 0.86rem;
+        line-height: 1.45;
+      }
+      .hero__panel,
+      .section,
+      .tab-panel {
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        background: var(--panel);
+      }
+      .hero__panel {
+        padding: 20px;
+      }
+      .hero__panel h2,
+      .section h2,
+      .tab-panel h3 {
+        margin: 0 0 10px;
+        font-size: 1rem;
+        letter-spacing: -0.02em;
+      }
+      .hero__panel p,
+      .section p,
+      .tab-panel p,
+      .tab-panel li,
+      .section li {
+        color: var(--muted-strong);
+        line-height: 1.65;
+      }
+      .hero__panel p,
+      .section p,
+      .tab-panel p {
+        margin: 0;
+      }
+      .mini-list {
+        margin: 16px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+      .mini-list li {
+        padding: 12px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+      }
+      .mini-list li:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+      .content {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 18px;
+        padding: 0 22px 22px;
+      }
+      .section {
+        padding: 20px;
+      }
+      .section--grid {
+        display: grid;
+        grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+        gap: 18px;
+      }
+      .path {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 36px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--muted-strong);
+        text-decoration: none;
+      }
+      .path:hover,
+      .path:focus-visible {
+        border-color: var(--border-strong);
+        outline: none;
+      }
+      .steps {
+        margin: 0;
+        padding-left: 20px;
+      }
+      .steps li + li {
+        margin-top: 10px;
+      }
+      .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .tab {
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.025);
+        color: var(--muted);
+        cursor: pointer;
+        transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+      }
+      .tab[aria-selected="true"] {
+        border-color: transparent;
+        background: var(--accent);
+        color: #0b0f0b;
+        font-weight: 700;
+      }
+      .tab:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .tab-panel {
+        display: none;
+        padding: 20px;
+      }
+      .tab-panel.is-active {
+        display: block;
+      }
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .feature-card {
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.022);
+      }
+      .feature-card strong {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--text);
+      }
+      .feature-card span {
+        color: var(--muted);
+        line-height: 1.5;
+        font-size: 0.92rem;
+      }
+      .url-box {
+        margin-top: 16px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        overflow-x: auto;
+        color: var(--muted-strong);
+      }
+      .footer {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 0 22px 22px;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .footer a {
+        color: var(--muted-strong);
+      }
+      @media (max-width: 900px) {
+        .hero,
+        .section--grid {
+          grid-template-columns: 1fr;
+        }
+        .stats,
+        .feature-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 640px) {
+        body {
+          padding: 16px;
+        }
+        .shell {
+          border-radius: 20px;
+        }
+        .topbar,
+        .hero,
+        .content,
+        .footer {
+          padding-left: 16px;
+          padding-right: 16px;
+        }
+        h1 {
+          font-size: 2.5rem;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="chat" class="chat" aria-live="polite"></div>
-    <script type="module" src="/src/main.ts"></script>
+    <main>
+      <div class="shell">
+        <header class="topbar">
+          <div class="brand">
+            <span class="brand__mark" aria-hidden="true"></span>
+            <span class="brand__text">Chat Overlay</span>
+          </div>
+          <nav class="topbar__links" aria-label="Primary links">
+            <a href="./chat/">Chat</a>
+            <a href="./alerts/">Alerts</a>
+            <a href="./customise/">Customiser</a>
+            <a href="./docs/">Docs</a>
+          </nav>
+        </header>
+
+        <section class="hero">
+          <div class="hero__copy">
+            <div class="eyebrow">Twitch overlays for OBS</div>
+            <h1>Clean browser sources for chat, alerts, and theme control.</h1>
+            <p>
+              Chat Overlay is a lightweight Twitch overlay toolkit built for OBS browser sources.
+              It gives you an anonymous IRC-powered chat overlay, a matching alerts page, and a
+              customiser that exports a single URL you can drop straight into your scene.
+            </p>
+            <div class="hero__actions">
+              <a class="button button--primary" href="./chat/?channel=PerryLK">Open chat overlay</a>
+              <a class="button" href="./customise/">Open customiser</a>
+            </div>
+            <div class="stats" aria-label="Project highlights">
+              <div class="stat">
+                <strong>No login needed</strong>
+                <span>Reads Twitch chat anonymously over IRC, so setup stays simple.</span>
+              </div>
+              <div class="stat">
+                <strong>Three focused pages</strong>
+                <span>Use only the browser source you need: chat, alerts, or theming.</span>
+              </div>
+              <div class="stat">
+                <strong>OBS-ready URLs</strong>
+                <span>Configuration lives in query parameters or config files, not code edits.</span>
+              </div>
+            </div>
+          </div>
+
+          <aside class="hero__panel" aria-label="Quick start summary">
+            <h2>Start in under a minute</h2>
+            <ul class="mini-list">
+              <li>1. Run <code>npm install</code> then <code>npm run dev</code>.</li>
+              <li>2. Open <code>/chat/</code>, <code>/alerts/</code>, or <code>/customise/</code>.</li>
+              <li>3. Paste the final page URL into an OBS Browser Source.</li>
+              <li>4. Add <code>?channel=YourLogin</code> to point the overlay at your channel.</li>
+            </ul>
+          </aside>
+        </section>
+
+        <div class="content">
+          <section class="section section--grid" aria-labelledby="how-it-works-title">
+            <div>
+              <h2 id="how-it-works-title">How the project is structured</h2>
+              <p>
+                The root page explains the system. Each actual feature then lives on its own subpage,
+                so OBS only loads the browser source you want to render.
+              </p>
+              <div class="hero__actions" style="margin-top: 16px;">
+                <a class="path" href="./chat/"><code>/chat/</code> Main chat overlay</a>
+                <a class="path" href="./alerts/"><code>/alerts/</code> Alert popups</a>
+                <a class="path" href="./customise/"><code>/customise/</code> Theme builder</a>
+              </div>
+            </div>
+            <div>
+              <h2>Typical OBS workflow</h2>
+              <ol class="steps">
+                <li>Open the customiser if you want to tune fonts, colours, spacing, or visibility.</li>
+                <li>Copy the generated browser-source URL, or build one manually for chat or alerts.</li>
+                <li>Add that URL in OBS as a Browser Source sized for your layout.</li>
+                <li>Keep chat and alerts as separate sources so you can place and animate them independently.</li>
+              </ol>
+            </div>
+          </section>
+
+          <section class="section" aria-labelledby="feature-tabs-title">
+            <h2 id="feature-tabs-title">Feature guide</h2>
+            <p>Use the tabs to see what each page does, when to use it, and the URL shape OBS should load.</p>
+
+            <div class="tabs" role="tablist" aria-label="Feature tabs">
+              <button class="tab" type="button" role="tab" id="tab-chat" aria-selected="true" aria-controls="panel-chat" data-tab="chat">Chat overlay</button>
+              <button class="tab" type="button" role="tab" id="tab-alerts" aria-selected="false" aria-controls="panel-alerts" data-tab="alerts">Alerts overlay</button>
+              <button class="tab" type="button" role="tab" id="tab-customise" aria-selected="false" aria-controls="panel-customise" data-tab="customise">Customiser</button>
+            </div>
+
+            <section class="tab-panel is-active" role="tabpanel" id="panel-chat" aria-labelledby="tab-chat" data-panel="chat">
+              <h3>Chat overlay</h3>
+              <p>
+                The main transparent browser source for Twitch chat. It supports anonymous IRC chat,
+                Twitch badges, 7TV emotes, replies, cheer highlighting, optional fade-out, and URL-driven config.
+              </p>
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <strong>What it is for</strong>
+                  <span>Displaying live chat on stream without requiring a Twitch login flow.</span>
+                </div>
+                <div class="feature-card">
+                  <strong>What you can tune</strong>
+                  <span>Theme, fade duration, max messages, badge visibility, replies, bits, command filtering and more.</span>
+                </div>
+                <div class="feature-card">
+                  <strong>Where it lives</strong>
+                  <span>Load the dedicated page at <code>/chat/</code> as an OBS Browser Source.</span>
+                </div>
+                <div class="feature-card">
+                  <strong>Best fit</strong>
+                  <span>Permanent scene elements like side chat columns, lower thirds, or fullscreen event scenes.</span>
+                </div>
+              </div>
+              <div class="url-box"><code>https://you.github.io/ChatOverlay/chat/?channel=PerryLK&amp;theme=comfy</code></div>
+            </section>
+
+            <section class="tab-panel" role="tabpanel" id="panel-alerts" aria-labelledby="tab-alerts" data-panel="alerts">
+              <h3>Alerts overlay</h3>
+              <p>
+                A separate browser source for transient Twitch events. It listens for anonymous IRC notices and turns
+                them into pop-up alerts for subs, resubs, gifted subs, sub bombs, cheers, raids, announcements, and bits badges.
+              </p>
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <strong>What it is for</strong>
+                  <span>Dedicated alert popups you can position independently from chat in OBS.</span>
+                </div>
+                <div class="feature-card">
+                  <strong>What you can tune</strong>
+                  <span>Alert duration, max queue size, minimum bits threshold, enabled types, and shared theme variables.</span>
+                </div>
+                <div class="feature-card">
+                  <strong>What it does not cover</strong>
+                  <span>Follow alerts are not available here because anonymous IRC does not expose them.</span>
+                </div>
+                <div class="feature-card">
+                  <strong>Preview mode</strong>
+                  <span>Append <code>&amp;test=sub,resub,raid</code> to preview styling without waiting for real events.</span>
+                </div>
+              </div>
+              <div class="url-box"><code>https://you.github.io/ChatOverlay/alerts/?channel=PerryLK&amp;test=sub,resub,raid</code></div>
+            </section>
+
+            <section class="tab-panel" role="tabpanel" id="panel-customise" aria-labelledby="tab-customise" data-panel="customise">
+              <h3>Customiser</h3>
+              <p>
+                The customiser is the visual editor. It lets you adjust typography, spacing, card styling, visibility,
+                and raw CSS, then exports a single URL containing the final <code>theme64</code> payload.
+              </p>
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <strong>What it is for</strong>
+                  <span>Building a polished chat look without manually editing CSS or config files.</span>
+                </div>
+                <div class="feature-card">
+                  <strong>What it outputs</strong>
+                  <span>A ready-to-paste browser-source URL pointing at <code>/chat/</code> with your theme choices embedded.</span>
+                </div>
+                <div class="feature-card">
+                  <strong>Live preview</strong>
+                  <span>See sample messages rendered locally while you tweak variables and CSS overrides.</span>
+                </div>
+                <div class="feature-card">
+                  <strong>Best fit</strong>
+                  <span>Creators who want reusable styling presets or per-scene variations without changing source code.</span>
+                </div>
+              </div>
+              <div class="url-box"><code>https://you.github.io/ChatOverlay/customise/</code></div>
+            </section>
+          </section>
+        </div>
+
+        <div class="footer">
+          <span>Lightweight Twitch overlays for OBS, built around separate browser-source pages.</span>
+          <span><a href="./docs/">Read the docs</a></span>
+        </div>
+      </div>
+    </main>
+    <script>
+      const tabs = Array.from(document.querySelectorAll('[data-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-panel]'));
+
+      function activateTab(name) {
+        tabs.forEach((tab) => {
+          const active = tab.dataset.tab === name;
+          tab.setAttribute('aria-selected', active ? 'true' : 'false');
+          tab.tabIndex = active ? 0 : -1;
+        });
+        panels.forEach((panel) => {
+          panel.classList.toggle('is-active', panel.dataset.panel === name);
+        });
+      }
+
+      tabs.forEach((tab, index) => {
+        tab.tabIndex = index === 0 ? 0 : -1;
+        tab.addEventListener('click', () => activateTab(tab.dataset.tab));
+        tab.addEventListener('keydown', (event) => {
+          if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft' && event.key !== 'Home' && event.key !== 'End') return;
+          event.preventDefault();
+          let nextIndex = index;
+          if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
+          if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+          if (event.key === 'Home') nextIndex = 0;
+          if (event.key === 'End') nextIndex = tabs.length - 1;
+          const nextTab = tabs[nextIndex];
+          activateTab(nextTab.dataset.tab);
+          nextTab.focus();
+        });
+      });
+    </script>
   </body>
 </html>
