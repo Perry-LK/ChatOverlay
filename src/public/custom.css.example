@@ -1,4 +1,4 @@
-/* Copy this file to public/custom.css to override the built-in theme. */
+/* Copy this file to src/public/custom.css to override the built-in theme. */
 
 :root {
   --co-font: 'Segoe UI', sans-serif;

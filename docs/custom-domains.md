@@ -23,7 +23,8 @@ If the overlay is hosted on GitHub Pages:
 4. Set `PAGES_CUSTOM_DOMAIN=perrychat.uk` as a repository variable
 5. Redeploy the Pages workflow
 
-The workflow will write `public/CNAME` at build time.
+The workflow writes `published/CNAME` after the published build. The generated
+file is not stored in the repository.
 
 ## Cloudflare Worker custom domain
 

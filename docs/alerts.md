@@ -27,7 +27,7 @@ All events that Twitch sends over IRC (and are visible to anonymous viewers):
 
 ## Quick start
 
-1. Build/deploy the site as normal (`npm run build`, then host `dist/`).
+1. Build the required target (`npm run build:local` or `npm run build:published`).
 2. In OBS, add a Browser Source pointing at:
 
    ```
@@ -48,7 +48,7 @@ To preview styling without waiting for a real event, append `?test=`:
 | Parameter         | Default | Description                                                                           |
 | ----------------- | ------- | ------------------------------------------------------------------------------------- |
 | `channel`         | —       | Twitch channel login (case-insensitive, `#` optional).                                |
-| `theme`           | `comfy` | Shared theme name from `public/themes/`.                                              |
+| `theme`           | `comfy` | Shared theme name from `src/public/themes/`.                                          |
 | `theme64`         | —       | Base64 custom theme exported from `/customise/`. Font/colour variables apply.         |
 | `durationSeconds` | `7`     | How long each alert stays on screen.                                                  |
 | `maxQueue`        | `5`     | Cap on queued alerts; older ones are dropped when exceeded.                           |
@@ -61,8 +61,8 @@ To preview styling without waiting for a real event, append `?test=`:
 
 ## `config.json` integration
 
-The alerts overlay reads the same `public/config.json` /
-`public/config.local.json` files as the chat overlay. Top-level `channel`,
+The alerts overlay reads the same `src/public/config.json` and selected
+environment config as the chat overlay. Top-level `channel`,
 `theme`, `theme64` and `twitchApiBase` are shared automatically. Alerts-only
 settings live under an `alerts` key, which takes precedence when present:
 
@@ -86,5 +86,5 @@ settings live under an `alerts` key, which takes precedence when present:
 The alerts page reuses the chat overlay's CSS variables (font, text colour,
 text shadow) so a custom `theme64` carries the typography across both browser
 sources. Per-alert accent colours, layout and card styling live in
-`src/alerts/styles.css` and can be overridden by a `public/custom.css` file
+`src/alerts/styles.css` and can be overridden by a `src/public/custom.css` file
 exactly like the chat overlay.

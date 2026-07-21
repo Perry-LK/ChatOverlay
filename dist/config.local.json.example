@@ -1,6 +1,0 @@
-{
-  "_comment": "Copy this file to public/config.local.json. That file is gitignored, so values you put here stay private to your machine — or are written at deploy time from the OVERLAY_CONFIG_LOCAL repo secret/variable. Anything set here overrides public/config.json. URL query parameters still override this at runtime.",
-  "channel": "PerryLK",
-  "theme": "comfy",
-  "twitchApiBase": "http://localhost:8787"
-}

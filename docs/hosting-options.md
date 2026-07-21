@@ -1,95 +1,43 @@
 # Hosting Options
 
-Chat Overlay is a static frontend, so you have several hosting choices depending on whether you want a simple static site, a local-only setup, or a production deployment backed by a Twitch proxy.
+## Local static service
 
-## Option 1: GitHub Pages
-
-This is the default deployment path for the static overlay.
-
-### Standard repo-hosted Pages
-
-1. Push to `main`
-2. In GitHub repository settings, open `Pages`
-3. Set source to `GitHub Actions`
-4. Let the workflow publish the site
-
-The default URL is:
-
-```text
-https://<your-username>.github.io/<repo-name>/
+```bash
+npm ci
+npm run serve:local
 ```
 
-### Custom-domain Pages
+The command builds `local/` and serves it on loopback. Use
+`npm run serve:local:lan` only on trusted networks.
 
-Use this when the site should live at a root domain or a branded subdomain.
+## GitHub Pages
 
-1. Point the domain at GitHub Pages with the required DNS records
-2. Set the custom domain in GitHub Pages settings
-3. Add repository variable `PAGES_BASE_PATH=/`
-4. Add repository variable `PAGES_CUSTOM_DOMAIN=your-domain.example`
-5. Redeploy the Pages workflow
+The workflow on `main`:
 
-## Option 2: Local hosting
+1. Installs dependencies with `npm ci`
+2. Reads only the published environment configuration
+3. Runs `npm run build:published`
+4. Uploads only `published/`
+5. Deploys that artifact through the protected `github-pages` environment
 
-Useful for testing, private setups, or LAN-only OBS usage.
+Enable **Settings → Pages → Source: GitHub Actions**. Optional variables are
+documented in the project [README](../README.md).
 
-### Development server
+The workflow never uploads the repository, `src/`, `local/`, local
+configuration, the optional proxy, or the Worker.
 
-```powershell
-npm install
-npm run dev
-```
+## Other static hosts
 
-### Production-like preview
+Run `npm run build:published` and deploy only `published/`. Configure
+`BASE_PATH` for the host's URL prefix before building.
 
-```powershell
-npm install
-npm run build
-npm run preview
-```
+## Optional API split
 
-### LAN preview
+The frontend remains static. Twitch Helix credentials belong in the included
+Node proxy or Cloudflare Worker, hosted separately with:
 
-```powershell
-npm install
-npm run build
-npm run host:local
-```
+- HTTPS
+- exact-origin CORS through `ALLOW_ORIGIN`
+- credentials stored in the platform's secret store
 
-## Option 3: Static site + proxy split
-
-This is the recommended production setup when you want Twitch Helix-backed user lookup and badge metadata.
-
-Recommended layout:
-
-- Static site on GitHub Pages or another static host
-- Proxy on Cloudflare Worker or the included local Node proxy
-
-Example:
-
-- Overlay site: `https://perrychat.uk`
-- Proxy API: `https://api.perrychat.uk`
-
-Then set:
-
-- `twitchApiBase=https://api.perrychat.uk`
-- `ALLOW_ORIGIN=https://perrychat.uk`
-
-## Option 4: Other static hosts
-
-Because the frontend is static after build, you can also host the built `dist/` folder on any static host that supports modern browser assets.
-
-Examples:
-
-- Cloudflare Pages
-- Netlify
-- Vercel static hosting
-- any Nginx or Apache host
-
-If you use another static host, the same proxy options still apply.
-
-## Choosing the right option
-
-- Use GitHub Pages if you want the lowest-friction public deployment.
-- Use local hosting if this is only for your own machine or LAN.
-- Use a Cloudflare Worker proxy if you want a stable public Helix proxy without exposing secrets.
+See [proxy setup](./proxy-setup.md).

@@ -1,86 +1,74 @@
-# Local Development
-
-This guide covers how to run Chat Overlay on your machine for development, testing, and local production-style previews.
+# Local Development and Hosting
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22 or later
 - npm
 
-## Start the app in development mode
+Install exactly the dependencies in the lockfile:
 
-From the repository root:
+```bash
+npm ci
+```
 
-```powershell
-npm install
+## Development server
+
+```bash
 npm run dev
 ```
 
-Open the printed local URL in a browser. The root URL is a small landing
-menu — the chat overlay itself lives at `/chat/`, the alerts overlay at
-`/alerts/`, and the customiser at `/customise/`.
+Vite serves source directly from `src/` at `http://127.0.0.1:5173`. Common
+routes are `/chat/`, `/alerts/`, and `/customise/`.
 
-To test a specific channel without editing files, append a URL parameter to
-the chat page:
+To apply local-only defaults, copy:
 
 ```text
-http://127.0.0.1:5173/chat/?channel=PerryLK
+src/environments/local/config.example.json
+  -> src/environments/local/config.json
 ```
 
-## Local production-style preview
+The destination is gitignored and is never read by the published build.
 
-Use this when you want to test the built output before deploying.
+## Independent local service
 
-```powershell
-npm install
-npm run build
-npm run preview
+Build and start the production-like local server:
+
+```bash
+npm run serve:local
 ```
 
-## Host the preview on your local network
+This creates the gitignored `local/` folder and serves it on the loopback
+interface. To expose it to OBS on another machine:
 
-Use this when OBS or another browser is running on a different machine.
-
-```powershell
-npm install
-npm run build
-npm run host:local
+```bash
+npm run serve:local:lan
 ```
 
-## Running with the local Twitch proxy
+LAN mode listens on all interfaces. Use it only on a trusted network and use a
+host firewall to limit access.
 
-If you want official Twitch user lookup and Helix badge metadata during development, start the local proxy in a second terminal.
+## Optional Twitch proxy
+
+Set credentials in the process environment, never in frontend files:
 
 ```powershell
 $env:TWITCH_CLIENT_ID = 'your-client-id'
 $env:TWITCH_CLIENT_SECRET = 'your-client-secret'
-$env:PORT = '8787'
+$env:ALLOW_ORIGIN = 'http://127.0.0.1:5173'
 npm run proxy:twitch
 ```
 
-Optional:
+Then set `twitchApiBase` to `http://localhost:8787` in the local environment
+config or URL. See [proxy setup](./proxy-setup.md).
 
-```powershell
-$env:ALLOW_ORIGIN = 'http://127.0.0.1:5173'
+## Validation
+
+```bash
+npm run typecheck
+npm run build:local
+npm run build:published
+npm audit
 ```
 
-Then point the overlay at the proxy with one of these:
-
-- `.env.local`: `VITE_TWITCH_API_BASE=http://localhost:8787`
-- `public/config.local.json`: `"twitchApiBase": "http://localhost:8787"`
-- URL param: `?twitchApiBase=http://localhost:8787`
-
-## Common local URLs
-
-- Landing menu: `http://127.0.0.1:5173/`
-- Chat overlay:  `http://127.0.0.1:5173/chat/`
-- Alerts overlay: `http://127.0.0.1:5173/alerts/`
-- Customiser:    `http://127.0.0.1:5173/customise/`
-- Local proxy health: `http://localhost:8787/health`
-- Local proxy global badges: `http://localhost:8787/api/twitch/chat/badges/global`
-
-## Troubleshooting
-
-- If the overlay loads but badges do not appear, add `?debug=1` and inspect the diagnostics panel.
-- If the proxy health route shows `hasCredentials: false`, your Twitch env vars are missing in the terminal running the proxy.
-- If OBS cannot load the overlay from a local path, use an HTTP URL instead of a `file://` path.
+Generated `local/` and `published/` folders are disposable and must not be
+committed.

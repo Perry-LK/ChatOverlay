@@ -30,7 +30,7 @@ This folder is the navigation hub for setting up, configuring, hosting, and depl
 ## Documentation map
 
 - [Local development](./local-development.md): install dependencies, run the app, preview builds, and local LAN hosting.
-- [Project configuration](./configuration.md): runtime config, URL params, private overrides, and deployment variables.
+- [Project configuration](./configuration.md): runtime config, URL params, isolated environment overrides, and deployment variables.
 - [Twitch proxy setup](./proxy-setup.md): local Node proxy, Cloudflare Worker deployment, secrets, and validation endpoints.
 - [Hosting options](./hosting-options.md): GitHub Pages, local hosting, and Worker-backed production setups.
 - [Custom domains](./custom-domains.md): GitHub Pages custom domains, Worker subdomains, and moving DNS to Cloudflare.

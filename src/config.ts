@@ -104,8 +104,7 @@ function normalize(cfg: OverlayConfig): OverlayConfig {
 /**
  * Loads overlay configuration. Later layers override earlier ones:
  *   1. Built-in defaults.
- *   2. Build-time env (VITE_DEFAULT_CHANNEL, VITE_DEFAULT_THEME,
- *      VITE_TWITCH_API_BASE from .env.local).
+ *   2. Explicit VITE_-prefixed build-time environment values.
  *   3. /config.json — public, committed default for the deployed site.
  *   4. /config.environment.json — build-target-specific overrides.
  *   5. URL query parameters — final per-instance override (great for OBS).

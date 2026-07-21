@@ -126,6 +126,6 @@ If `hasCredentials` is `false`, the Worker is live but the Twitch secrets are mi
 
 Set one of these:
 
-- `.env.local`: `VITE_TWITCH_API_BASE=https://api.example.com`
-- `public/config.local.json`: `"twitchApiBase": "https://api.example.com"`
+- Local environment config: `"twitchApiBase": "https://api.example.com"`
+- Published environment config: `"twitchApiBase": "https://api.example.com"`
 - URL param: `?twitchApiBase=https://api.example.com`
