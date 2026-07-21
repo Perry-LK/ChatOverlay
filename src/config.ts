@@ -107,20 +107,19 @@ function normalize(cfg: OverlayConfig): OverlayConfig {
  *   2. Build-time env (VITE_DEFAULT_CHANNEL, VITE_DEFAULT_THEME,
  *      VITE_TWITCH_API_BASE from .env.local).
  *   3. /config.json — public, committed default for the deployed site.
- *   4. /config.local.json — private overrides; gitignored locally and may be
- *      written at deploy time from a repo secret/variable.
+ *   4. /config.environment.json — build-target-specific overrides.
  *   5. URL query parameters — final per-instance override (great for OBS).
  */
 export async function loadConfig(): Promise<OverlayConfig> {
   let cfg: OverlayConfig = applyEnvDefaults({ ...DEFAULTS });
 
   const base = import.meta.env.BASE_URL;
-  const [publicCfg, localCfg] = await Promise.all([
+  const [publicCfg, environmentCfg] = await Promise.all([
     fetchJsonIfPresent(`${base}config.json`),
-    fetchJsonIfPresent(`${base}config.local.json`),
+    fetchJsonIfPresent(`${base}config.environment.json`),
   ]);
   if (publicCfg) cfg = { ...cfg, ...publicCfg };
-  if (localCfg) cfg = { ...cfg, ...localCfg };
+  if (environmentCfg) cfg = { ...cfg, ...environmentCfg };
 
   cfg = applyUrlParams(cfg);
   return normalize(cfg);

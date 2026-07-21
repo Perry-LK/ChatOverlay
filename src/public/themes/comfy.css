@@ -1,0 +1,73 @@
+:root {
+  --co-font: 'Trebuchet MS', 'Avenir Next', 'Segoe UI', sans-serif;
+  --co-font-size: 21px;
+  --co-line-height: 1.42;
+  --co-text: #f8fbff;
+  --co-text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.55),
+    0 2px 6px rgba(0, 0, 0, 0.85);
+  --co-username-weight: 800;
+  --co-message-gap: 10px;
+  --co-padding: 10px 14px;
+  --co-radius: 14px;
+  --co-emote-size: 1.7em;
+  --co-fade-duration: 700ms;
+  --co-enter-duration: 280ms;
+}
+
+.chat {
+  padding: 18px;
+  gap: 10px;
+}
+
+.msg {
+  max-width: min(92%, 760px);
+  background:
+    linear-gradient(180deg, rgba(25, 34, 58, 0.72), rgba(14, 20, 36, 0.66));
+  border: 1px solid rgba(194, 219, 255, 0.16);
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(8px);
+}
+
+.msg + .msg {
+  margin-top: 2px;
+}
+
+.msg.deleted {
+  opacity: 0.6;
+}
+
+.badges {
+  gap: 4px;
+  margin-right: 6px;
+}
+
+.badge {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45));
+}
+
+.username {
+  letter-spacing: 0.01em;
+}
+
+.reply {
+  font-size: 0.72em;
+  opacity: 0.78;
+  color: #d4e4ff;
+}
+
+.cheer {
+  text-shadow:
+    0 0 10px rgba(255, 255, 255, 0.18),
+    0 1px 2px rgba(0, 0, 0, 0.55);
+}
+
+.status {
+  bottom: 8px;
+  right: 10px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(10, 15, 25, 0.45);
+}

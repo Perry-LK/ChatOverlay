@@ -1,5 +1,6 @@
 node_modules/
-dist/
+local/
+published/
 .vite/
 
 # Logs
@@ -15,10 +16,10 @@ pnpm-debug.log*
 .env.*
 !.env.example
 
-# Private local overrides — keep deployment-specific values out of the repo
-public/config.local.json
-public/CNAME
-public/custom.css
+# Deployment-specific values and generated customisations
+src/environments/local/config.json
+src/environments/published/config.json
+src/public/custom.css
 
 # OS / editor files
 .DS_Store

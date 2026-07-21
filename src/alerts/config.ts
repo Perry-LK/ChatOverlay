@@ -132,7 +132,7 @@ function normalize(cfg: AlertsConfig): AlertsConfig {
 
 /**
  * Loads the alerts overlay configuration. Layer order mirrors the chat
- * overlay: built-in defaults -> env -> /config.json -> /config.local.json ->
+ * overlay: built-in defaults -> env -> /config.json -> /config.environment.json ->
  * URL query parameters. Each layer may override the previous one.
  *
  * The committed config.json may include an `alerts` section; if present, its
@@ -143,12 +143,12 @@ export async function loadAlertsConfig(): Promise<AlertsConfig> {
   let cfg: AlertsConfig = applyEnvDefaults({ ...DEFAULTS, enabled: { ...DEFAULTS.enabled } });
 
   const base = import.meta.env.BASE_URL;
-  const [publicCfg, localCfg] = await Promise.all([
+  const [publicCfg, environmentCfg] = await Promise.all([
     fetchJsonIfPresent(`${base}config.json`),
-    fetchJsonIfPresent(`${base}config.local.json`),
+    fetchJsonIfPresent(`${base}config.environment.json`),
   ]);
   cfg = mergeFileConfig(cfg, publicCfg);
-  cfg = mergeFileConfig(cfg, localCfg);
+  cfg = mergeFileConfig(cfg, environmentCfg);
 
   cfg = applyUrlParams(cfg);
   return normalize(cfg);

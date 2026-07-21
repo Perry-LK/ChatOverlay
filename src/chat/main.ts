@@ -16,7 +16,7 @@ async function main(): Promise<void> {
   if (!root) throw new Error('#chat element not found');
 
   // Apply the chosen theme immediately so there is no flash of un-themed base
-  // styles while config.json / config.local.json are still being fetched.
+  // styles while config.json / config.environment.json are still being fetched.
   const earlyThemeReady = preloadTheme(readEarlyTheme());
 
   const config = await loadConfig();
